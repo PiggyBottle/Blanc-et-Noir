@@ -22,3 +22,11 @@ struct Instruction {
 	bool quit = false;
 	enums::songs songToLoad = enums::NO_SONGS;
 };
+
+struct InitVariables {
+	int screen_height;
+	int screen_width;
+	int screen_fps;
+	int startup_screen_delay;
+	int maingame_startup_fadein_time;
+};

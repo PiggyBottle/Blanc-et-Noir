@@ -15,11 +15,17 @@ MainGame::MainGame(SDL_Renderer *gRenderer, int height, int width)
 
 void MainGame::init(Instruction nextInstruction)
 {
+	//Make object start-up before proceeding with game
+	startingUp = true;
+	startUpTick = currentTick;
+	
 	//Load Texutures
-	const char *z = "gamebg.jpg";
+	char *z = "gamebg.jpg";
 	bg = loadTexture(z, Renderer);
 	if (bg == NULL) { printf("error loading texture"); }
 	SDL_SetTextureBlendMode(bg, SDL_BLENDMODE_BLEND);
+
+	
 
 	//Load music/SFX
 
@@ -42,7 +48,14 @@ void MainGame::uninit()
 
 Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 {
+	currentTick = SDL_GetTicks();
+
 	if (!initted) { init(nextInstruction); }
+
+	if (startingUp)
+	{
+		
+	}
 	SDL_SetTextureAlphaMod(bg, 55);
 	SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
 	SDL_Rect timeBar = { 0,5 * (SCREEN_HEIGHT / 6),SCREEN_WIDTH,10 };
@@ -51,6 +64,7 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 
 	instruction.quit = false;
 	instruction.nextState = enums::MAIN_GAME;
+
 
 	return instruction;
 }

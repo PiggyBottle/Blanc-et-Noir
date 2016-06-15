@@ -15,9 +15,10 @@ public:
 private:
 	void init(Instruction nextInstruction);
 	SDL_Renderer *Renderer;
-	bool initted = false;
+	bool initted = false, startingUp = false;
 	Instruction instruction;
-	SDL_Texture *bg = NULL;
+	SDL_Texture *bg = NULL, *note = NULL;
 	int SCREEN_HEIGHT, SCREEN_WIDTH;
 	unsigned long bgm;
+	Uint32 currentTick, startUpTick;
 };
