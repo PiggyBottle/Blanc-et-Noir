@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "MainGame.h"
 #include <stdio.h>
 #include <SDL_image.h>
 #include <bass.h>
