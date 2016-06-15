@@ -1,5 +1,6 @@
 #include "MainGame.h"
 #include <bass.h>
+#include <cmath>
 
 
 
@@ -14,6 +15,7 @@ MainGame::MainGame(SDL_Renderer *gRenderer, InitVariables var)
 	this->startUpFadeTime = var.maingame_startup_fadein_time;
 	this->bgAlpha = var.mainGame_bg_alpha;
 	this->uiTransitionTime = var.mainGame_ui_transition_time;
+	this->timeBar = { 0,5 * (SCREEN_HEIGHT / 6),SCREEN_WIDTH,10 };
 }
 
 void MainGame::init(Instruction nextInstruction)
@@ -60,6 +62,12 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	SDL_SetTextureAlphaMod(bg, processBgAlpha());
 	SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
 
+	//Blit UI
+	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+	
+	timeBar.y = processTimeBarY();
+	SDL_RenderFillRect(Renderer, &timeBar);
+
 	if (startingUp)
 	{
 		int timeSinceStartup = currentTick - startUpTick;
@@ -74,15 +82,32 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 		
 	}
 	
-	SDL_Rect timeBar = { 0,5 * (SCREEN_HEIGHT / 6),SCREEN_WIDTH,10 };
-	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-	SDL_RenderFillRect(Renderer, &timeBar);
 
 	instruction.quit = false;
 	instruction.nextState = enums::MAIN_GAME;
 
 
 	return instruction;
+}
+
+int MainGame::processTimeBarY()
+{
+	int timeRemaining = currentTick - (startUpTick + startUpFadeTime);
+	//printf("%d\n", timeRemaining);
+	if (timeRemaining < 0) {
+		return 0;
+	} else if (timeRemaining < uiTransitionTime)
+	{
+		float a = (1.34 * (float)(std::sin(2.3*((float)timeRemaining / (float)uiTransitionTime))));
+		int b = (((float)1) / ((float)6)) * SCREEN_HEIGHT * a;
+		printf("%d\n", b);
+		return SCREEN_HEIGHT - b;
+	}
+	else
+	{
+		return 5 * (SCREEN_HEIGHT / 6);
+		
+	}
 }
 
 Uint8 MainGame::processBgAlpha()

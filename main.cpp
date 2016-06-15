@@ -21,7 +21,7 @@ int main(int argc, char* args[]) {
 	var.startup_screen_delay = 2000;
 	var.maingame_startup_fadein_time = 1000;
 	var.mainGame_bg_alpha = 55;
-	var.mainGame_ui_transition_time = 1000;
+	var.mainGame_ui_transition_time = 500;
 
 	Game game = Game(var);
 
