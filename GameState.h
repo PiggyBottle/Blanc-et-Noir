@@ -21,7 +21,7 @@ private:
 class StartingScreen: public GameState
 {
 public:
-	StartingScreen(SDL_Renderer *gRenderer);
+	StartingScreen(SDL_Renderer *gRenderer, int delay);
 	StartingScreen();
 	~StartingScreen();
 	void init();
@@ -33,6 +33,7 @@ private:
 	long startTime;
 	SDL_Renderer *Renderer = NULL;
 	Instruction instruction;
+	int fadeDelay;
 };
 
 class MainMenu : public GameState

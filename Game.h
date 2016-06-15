@@ -9,8 +9,7 @@
 class Game
 {
 public:
-	Game(int width, int height, int fps);
-	Game();
+	Game(InitVariables var);
 	~Game();
 	bool init();
 	void uninit();
@@ -19,11 +18,12 @@ private:
 	int SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_FPS;
 	SDL_Window *gWindow;
 	SDL_Renderer *gRenderer;
-	std::unique_ptr<GameState> states[enums::TOTAL_STATES];
+	GameState *states[enums::TOTAL_STATES];
 	int currentState;
 	Instruction nextInstruction, previousInstruction;
 	void uninitializeAllStates();
 	Uint32 msPerFrame, prevFrameTime, currentFrameTime;
+	InitVariables initVariables;
 
 
 };

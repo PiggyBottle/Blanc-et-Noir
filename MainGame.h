@@ -9,16 +9,16 @@
 class MainGame : public GameState
 {
 public:
-	MainGame(SDL_Renderer *gRenderer, int height, int width);
+	MainGame(SDL_Renderer *gRenderer, InitVariables var);
 	void uninit();
 	Instruction process(SDL_Event e, Instruction nextInstruction);
 private:
-	void init(Instruction nextInstruction);
+	void init(Instruction nextInstruction), startUpFadeIn(int timeSinceStartup);
 	SDL_Renderer *Renderer;
 	bool initted = false, startingUp = false;
 	Instruction instruction;
 	SDL_Texture *bg = NULL, *note = NULL;
-	int SCREEN_HEIGHT, SCREEN_WIDTH;
+	int SCREEN_HEIGHT, SCREEN_WIDTH, startUpFadeTime, bgAlpha;
 	unsigned long bgm;
 	Uint32 currentTick, startUpTick;
 };

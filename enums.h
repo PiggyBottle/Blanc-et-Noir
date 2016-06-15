@@ -29,4 +29,5 @@ struct InitVariables {
 	int screen_fps;
 	int startup_screen_delay;
 	int maingame_startup_fadein_time;
+	int mainGame_bg_alpha;
 };

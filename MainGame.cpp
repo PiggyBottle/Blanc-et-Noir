@@ -1,16 +1,19 @@
 #include "MainGame.h"
 #include <bass.h>
+#include <cmath>
 
 
 
 
 
 
-MainGame::MainGame(SDL_Renderer *gRenderer, int height, int width)
+MainGame::MainGame(SDL_Renderer *gRenderer, InitVariables var)
 {
 	this->Renderer = gRenderer;
-	this->SCREEN_HEIGHT = height;
-	this->SCREEN_WIDTH = width;
+	this->SCREEN_HEIGHT = var.screen_height;
+	this->SCREEN_WIDTH = var.screen_width;
+	this->startUpFadeTime = var.maingame_startup_fadein_time;
+	this->bgAlpha = var.mainGame_bg_alpha;
 }
 
 void MainGame::init(Instruction nextInstruction)
@@ -54,10 +57,18 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 
 	if (startingUp)
 	{
-		
+		int timeSinceStartup = currentTick - startUpTick;
+		if (timeSinceStartup < startUpFadeTime)
+		{
+			startUpFadeIn(timeSinceStartup);
+		}
+		else { startingUp = false; }
+	} else
+	{
+		SDL_SetTextureAlphaMod(bg, bgAlpha);
+		SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
 	}
-	SDL_SetTextureAlphaMod(bg, 55);
-	SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
+	
 	SDL_Rect timeBar = { 0,5 * (SCREEN_HEIGHT / 6),SCREEN_WIDTH,10 };
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
 	SDL_RenderFillRect(Renderer, &timeBar);
@@ -67,4 +78,10 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 
 
 	return instruction;
+}
+
+void MainGame::startUpFadeIn(int timeSinceStartup)
+{
+	SDL_SetTextureAlphaMod(bg, (Uint8)(((float)bgAlpha)*((float)timeSinceStartup / (float)startUpFadeTime)));
+	SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
 }

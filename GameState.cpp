@@ -49,9 +49,10 @@ StartingScreen::~StartingScreen()
 {
 }
 
-StartingScreen::StartingScreen(SDL_Renderer *gRenderer) 
+StartingScreen::StartingScreen(SDL_Renderer *gRenderer, int delay) 
 {
 	this->Renderer = gRenderer;
+	fadeDelay = delay;
 }
 
 void StartingScreen::init()
@@ -84,7 +85,7 @@ Instruction StartingScreen::process(SDL_Event e, Instruction nextInstruction)
 		SDL_SetTextureAlphaMod(screen, 155);
 		SDL_RenderCopyEx(Renderer, screen, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
 
-		if (!(SDL_GetTicks() - startTime < 3000))
+		if (!(SDL_GetTicks() - startTime < fadeDelay))
 		{
 			uninit();
 			instruction.nextState = enums::MAIN_MENU;

@@ -6,19 +6,15 @@
 
 
 
-Game::Game(int width, int height, int fps)
+Game::Game(InitVariables var)
 {
-	this->SCREEN_WIDTH = width;
-	this->SCREEN_HEIGHT = height;
-	this->SCREEN_FPS = fps;
+	initVariables = var;
+	this->SCREEN_WIDTH = initVariables.screen_width;
+	this->SCREEN_HEIGHT = initVariables.screen_height;
+	this->SCREEN_FPS = initVariables.screen_fps;
 }
 
-Game::Game()
-{
-	this->SCREEN_WIDTH = 1280;
-	this->SCREEN_HEIGHT = 720;
-	this->SCREEN_FPS = 60;
-}
+
 Game::~Game()
 {
 }
@@ -78,9 +74,9 @@ bool Game::init()
 	}
 
 	//Load Game States
-	states[enums::STARTING_SCREEN] = std::unique_ptr<GameState>(new StartingScreen(gRenderer));
-	states[enums::MAIN_MENU] = std::unique_ptr<GameState>(new MainMenu(gRenderer));
-	states[enums::MAIN_GAME] = std::unique_ptr<GameState>(new MainGame(gRenderer,SCREEN_HEIGHT,SCREEN_WIDTH));
+	states[enums::STARTING_SCREEN] = new StartingScreen(gRenderer, initVariables.startup_screen_delay);
+	states[enums::MAIN_MENU] = new MainMenu(gRenderer);
+	states[enums::MAIN_GAME] = new MainGame(gRenderer, initVariables);
 
 
 

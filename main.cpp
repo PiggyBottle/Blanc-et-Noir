@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 #include <bass.h>
-
 #include "Game.h"
 
 //Screen dimension constants
@@ -15,7 +14,15 @@ const int SCREEN_FPS = 60;
 
 int main(int argc, char* args[]) {
 
-	Game game;
+	InitVariables var;
+	var.screen_width = 1280;
+	var.screen_height = 720;
+	var.screen_fps = 60;
+	var.startup_screen_delay = 1000;
+	var.maingame_startup_fadein_time = 1000;
+	var.mainGame_bg_alpha = 55;
+
+	Game game = Game(var);
 
 	if (game.init()) {
 		printf("initialized successfully\n");
