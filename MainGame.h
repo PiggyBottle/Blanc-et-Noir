@@ -13,12 +13,13 @@ public:
 	void uninit();
 	Instruction process(SDL_Event e, Instruction nextInstruction);
 private:
-	void init(Instruction nextInstruction), startUpFadeIn(int timeSinceStartup);
+	void init(Instruction nextInstruction), uiTransitionIn(int currentTick);
+	Uint8 processBgAlpha();
 	SDL_Renderer *Renderer;
 	bool initted = false, startingUp = false;
 	Instruction instruction;
 	SDL_Texture *bg = NULL, *note = NULL;
-	int SCREEN_HEIGHT, SCREEN_WIDTH, startUpFadeTime, bgAlpha;
+	int SCREEN_HEIGHT, SCREEN_WIDTH, startUpFadeTime, bgAlpha, uiTransitionTime, startUpFadeInBackgroundFinishTime;
 	unsigned long bgm;
 	Uint32 currentTick, startUpTick;
 };

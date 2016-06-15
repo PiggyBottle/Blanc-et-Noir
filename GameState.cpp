@@ -1,6 +1,7 @@
 #include "GameState.h"
 #include <stdio.h>
 #include <SDL_image.h>
+#include <cmath>
 
 GameState::GameState() 
 {
@@ -81,11 +82,12 @@ Instruction StartingScreen::process(SDL_Event e, Instruction nextInstruction)
 	}
 	else
 	{
+		int currentTick = SDL_GetTicks();
 		//Render texture to screen
-		SDL_SetTextureAlphaMod(screen, 155);
+		SDL_SetTextureAlphaMod(screen, 255.0 * (((float)currentTick - (float)startTime) / (float)fadeDelay));
 		SDL_RenderCopyEx(Renderer, screen, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
 
-		if (!(SDL_GetTicks() - startTime < fadeDelay))
+		if (!(currentTick - startTime < fadeDelay))
 		{
 			uninit();
 			instruction.nextState = enums::MAIN_MENU;

@@ -18,9 +18,10 @@ int main(int argc, char* args[]) {
 	var.screen_width = 1280;
 	var.screen_height = 720;
 	var.screen_fps = 60;
-	var.startup_screen_delay = 1000;
+	var.startup_screen_delay = 2000;
 	var.maingame_startup_fadein_time = 1000;
 	var.mainGame_bg_alpha = 55;
+	var.mainGame_ui_transition_time = 1000;
 
 	Game game = Game(var);
 

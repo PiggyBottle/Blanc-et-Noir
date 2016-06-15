@@ -30,4 +30,5 @@ struct InitVariables {
 	int startup_screen_delay;
 	int maingame_startup_fadein_time;
 	int mainGame_bg_alpha;
+	int mainGame_ui_transition_time;
 };

@@ -1,6 +1,5 @@
 #include "MainGame.h"
 #include <bass.h>
-#include <cmath>
 
 
 
@@ -14,6 +13,7 @@ MainGame::MainGame(SDL_Renderer *gRenderer, InitVariables var)
 	this->SCREEN_WIDTH = var.screen_width;
 	this->startUpFadeTime = var.maingame_startup_fadein_time;
 	this->bgAlpha = var.mainGame_bg_alpha;
+	this->uiTransitionTime = var.mainGame_ui_transition_time;
 }
 
 void MainGame::init(Instruction nextInstruction)
@@ -21,6 +21,7 @@ void MainGame::init(Instruction nextInstruction)
 	//Make object start-up before proceeding with game
 	startingUp = true;
 	startUpTick = currentTick;
+	startUpFadeInBackgroundFinishTime = currentTick;
 	
 	//Load Texutures
 	char *z = "gamebg.jpg";
@@ -55,18 +56,22 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 
 	if (!initted) { init(nextInstruction); }
 
+	//Blit Background image
+	SDL_SetTextureAlphaMod(bg, processBgAlpha());
+	SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
+
 	if (startingUp)
 	{
 		int timeSinceStartup = currentTick - startUpTick;
-		if (timeSinceStartup < startUpFadeTime)
-		{
-			startUpFadeIn(timeSinceStartup);
+		int timeSinceFinishStartup = currentTick - startUpFadeInBackgroundFinishTime;
+		if (timeSinceFinishStartup < uiTransitionTime)
+		{ 
+			uiTransitionIn(currentTick);
 		}
 		else { startingUp = false; }
 	} else
 	{
-		SDL_SetTextureAlphaMod(bg, bgAlpha);
-		SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
+		
 	}
 	
 	SDL_Rect timeBar = { 0,5 * (SCREEN_HEIGHT / 6),SCREEN_WIDTH,10 };
@@ -80,8 +85,19 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	return instruction;
 }
 
-void MainGame::startUpFadeIn(int timeSinceStartup)
+Uint8 MainGame::processBgAlpha()
 {
-	SDL_SetTextureAlphaMod(bg, (Uint8)(((float)bgAlpha)*((float)timeSinceStartup / (float)startUpFadeTime)));
-	SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
+	int timeSinceStartup = currentTick - startUpTick;
+	if (timeSinceStartup < startUpFadeTime)
+	{
+		startUpFadeInBackgroundFinishTime = currentTick;
+		return (Uint8)(((float)bgAlpha)*((float)timeSinceStartup / (float)startUpFadeTime));
+	}
+	else { return bgAlpha; }
+}
+
+
+void MainGame::uiTransitionIn(int currentTick)
+{
+
 }
