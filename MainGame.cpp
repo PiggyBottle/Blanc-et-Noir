@@ -95,13 +95,15 @@ int MainGame::processTimeBarY()
 	int timeRemaining = currentTick - (startUpTick + startUpFadeTime);
 	//printf("%d\n", timeRemaining);
 	if (timeRemaining < 0) {
-		return 0;
+		return SCREEN_HEIGHT;
 	} else if (timeRemaining < uiTransitionTime)
 	{
-		float a = (1.34 * (float)(std::sin(2.3*((float)timeRemaining / (float)uiTransitionTime))));
-		int b = (((float)1) / ((float)6)) * SCREEN_HEIGHT * a;
-		printf("%d\n", b);
-		return SCREEN_HEIGHT - b;
+		//y = 1.34 sin(2.3x). y = 1 when x = 1
+		//Animation speed can be changed by altering ui transition time in main.cpp
+		float multiplier = (1.34 * (float)(std::sin(2.3*((float)timeRemaining / (float)uiTransitionTime))));
+		int offset = (((float)1) / ((float)6)) * SCREEN_HEIGHT * multiplier;
+		printf("%d\n", offset);
+		return SCREEN_HEIGHT - offset;
 	}
 	else
 	{
