@@ -7,10 +7,6 @@
 #include <bass.h>
 #include "Game.h"
 
-//Screen dimension constants
-const int SCREEN_WIDTH = 1280;
-const int SCREEN_HEIGHT = 720;
-const int SCREEN_FPS = 60;
 
 int main(int argc, char* args[]) {
 
@@ -22,6 +18,7 @@ int main(int argc, char* args[]) {
 	var.maingame_startup_fadein_time = 1000;
 	var.mainGame_bg_alpha = 55;
 	var.mainGame_ui_transition_time = 500;
+	var.path_width_ratio = (float)(1.0 / 15.0);
 
 	Game game = Game(var);
 

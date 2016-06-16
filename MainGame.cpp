@@ -1,4 +1,5 @@
 #include "MainGame.h"
+#include "BeatPath.h"
 #include <bass.h>
 #include <cmath>
 
@@ -16,6 +17,7 @@ MainGame::MainGame(SDL_Renderer *gRenderer, InitVariables var)
 	this->bgAlpha = var.mainGame_bg_alpha;
 	this->uiTransitionTime = var.mainGame_ui_transition_time;
 	this->timeBar = { 0,5 * (SCREEN_HEIGHT / 6),SCREEN_WIDTH,10 };
+	this->pathWidthRatio = var.path_width_ratio;
 }
 
 void MainGame::init(Instruction nextInstruction)
@@ -55,6 +57,7 @@ void MainGame::uninit()
 Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 {
 	currentTick = SDL_GetTicks();
+
 	if (!initted) { init(nextInstruction); }
 
 	//Blit Background image
@@ -66,15 +69,14 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	timeBar.y = processTimeBarY();
 	SDL_RenderFillRect(Renderer, &timeBar);
 
+	//Blit map
+	BeatPath a = BeatPath(Renderer, SCREEN_WIDTH / 2,SCREEN_WIDTH, pathWidthRatio);
+	a.renderPath(currentTick, BASS_ChannelGetPosition(bgm, BASS_POS_BYTE), timeBar.y);
+	
+
 	if (startingUp)
 	{
-		int timeSinceStartup = currentTick - startUpTick;
-		int timeSinceFinishStartup = currentTick - startUpFadeInBackgroundFinishTime;
-		if (timeSinceFinishStartup < uiTransitionTime)
-		{ 
-			uiTransitionIn(currentTick);
-		}
-		else { startingUp = false; }
+		startingUp = false;
 	} else
 	{
 		
@@ -120,7 +122,3 @@ Uint8 MainGame::processBgAlpha()
 }
 
 
-void MainGame::uiTransitionIn(int currentTick)
-{
-
-}

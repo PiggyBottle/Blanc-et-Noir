@@ -31,4 +31,11 @@ struct InitVariables {
 	int maingame_startup_fadein_time;
 	int mainGame_bg_alpha;
 	int mainGame_ui_transition_time;
+	float path_width_ratio;
+};
+
+struct RGB {
+	int r;
+	int g;
+	int b;
 };

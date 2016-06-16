@@ -13,7 +13,7 @@ public:
 	void uninit();
 	Instruction process(SDL_Event e, Instruction nextInstruction);
 private:
-	void init(Instruction nextInstruction), uiTransitionIn(int currentTick);
+	void init(Instruction nextInstruction);
 	Uint8 processBgAlpha();
 	Uint32 currentTick, startUpTick;
 	SDL_Renderer *Renderer;
@@ -24,4 +24,5 @@ private:
 	int SCREEN_HEIGHT, SCREEN_WIDTH, startUpFadeTime, bgAlpha, uiTransitionTime, startUpFadeInBackgroundFinishTime;
 	int processTimeBarY();
 	unsigned long bgm;
+	float pathWidthRatio;
 };
