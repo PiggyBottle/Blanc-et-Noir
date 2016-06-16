@@ -55,7 +55,6 @@ void MainGame::uninit()
 Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 {
 	currentTick = SDL_GetTicks();
-
 	if (!initted) { init(nextInstruction); }
 
 	//Blit Background image
@@ -64,7 +63,6 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 
 	//Blit UI
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-	
 	timeBar.y = processTimeBarY();
 	SDL_RenderFillRect(Renderer, &timeBar);
 
@@ -93,22 +91,20 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 int MainGame::processTimeBarY()
 {
 	int timeRemaining = currentTick - (startUpTick + startUpFadeTime);
-	//printf("%d\n", timeRemaining);
 	if (timeRemaining < 0) {
 		return SCREEN_HEIGHT;
 	} else if (timeRemaining < uiTransitionTime)
 	{
 		//y = 1.34 sin(2.3x). y = 1 when x = 1
 		//Animation speed can be changed by altering ui transition time in main.cpp
-		float multiplier = (1.34 * (float)(std::sin(2.3*((float)timeRemaining / (float)uiTransitionTime))));
-		int offset = (((float)1) / ((float)6)) * SCREEN_HEIGHT * multiplier;
-		printf("%d\n", offset);
-		return SCREEN_HEIGHT - offset;
+		float multiplier = (((float)1.34) * (float)(std::sin(2.3*((float)timeRemaining / (float)uiTransitionTime))));
+		float offset = (((float)1) / ((float)6)) * SCREEN_HEIGHT * multiplier;
+		//printf("%d\n", offset);
+		return (int)(SCREEN_HEIGHT - offset);
 	}
 	else
 	{
 		return 5 * (SCREEN_HEIGHT / 6);
-		
 	}
 }
 
