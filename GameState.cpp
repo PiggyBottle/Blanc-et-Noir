@@ -84,7 +84,7 @@ Instruction StartingScreen::process(SDL_Event e, Instruction nextInstruction)
 	{
 		int currentTick = SDL_GetTicks();
 		//Render texture to screen
-		SDL_SetTextureAlphaMod(screen, 255.0 * (((float)currentTick - (float)startTime) / (float)fadeDelay));
+		SDL_SetTextureAlphaMod(screen,(Uint8) (255.0 * (((float)currentTick - (float)startTime) / (float)fadeDelay)));
 		SDL_RenderCopyEx(Renderer, screen, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
 
 		if (!(currentTick - startTime < fadeDelay))

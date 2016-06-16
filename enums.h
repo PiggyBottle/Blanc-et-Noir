@@ -39,3 +39,5 @@ struct RGB {
 	int g;
 	int b;
 };
+
+

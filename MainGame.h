@@ -20,7 +20,7 @@ private:
 	SDL_Texture *bg = NULL, *note = NULL;
 	SDL_Rect timeBar;
 	Instruction instruction;
-	bool initted = false, startingUp = false;
+	bool initted = false;
 	int SCREEN_HEIGHT, SCREEN_WIDTH, startUpFadeTime, bgAlpha, uiTransitionTime, startUpFadeInBackgroundFinishTime;
 	int processTimeBarY();
 	unsigned long bgm;

@@ -23,7 +23,6 @@ MainGame::MainGame(SDL_Renderer *gRenderer, InitVariables var)
 void MainGame::init(Instruction nextInstruction)
 {
 	//Make object start-up before proceeding with game
-	startingUp = true;
 	startUpTick = currentTick;
 	startUpFadeInBackgroundFinishTime = currentTick;
 	
@@ -40,6 +39,7 @@ void MainGame::init(Instruction nextInstruction)
 	const char *listOfSongs[enums::TOTAL_SONGS] = { "Unravel.flac", "ForSeasons.flac" };
 	//Last argument in this function should be replaced with "BASS_SAMPLE_LOOP" flag if you want to repeat
 	bgm = BASS_StreamCreateFile(false, listOfSongs[nextInstruction.songToLoad], 0, 0, 0);
+	//BASS_ChannelSetPosition(bgm, 1000000, BASS_POS_BYTE);
 	BASS_ChannelPlay(bgm, false);
 
 	initted = true;
@@ -70,18 +70,16 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	SDL_RenderFillRect(Renderer, &timeBar);
 
 	//Blit map
-	BeatPath a = BeatPath(Renderer, SCREEN_WIDTH / 2,SCREEN_WIDTH, pathWidthRatio);
-	a.renderPath(currentTick, BASS_ChannelGetPosition(bgm, BASS_POS_BYTE), timeBar.y);
-	
-
-	if (startingUp)
-	{
-		startingUp = false;
-	} else
-	{
-		
-	}
-	
+	QWORD startTimes[2];
+	startTimes[0] = 789;
+	startTimes[1] = 2260;
+	QWORD endTimes[2];
+	endTimes[0] = 1000;
+	endTimes[1] = 2400;
+	BeatPath asdf[] = {BeatPath(Renderer, SCREEN_WIDTH / 2,SCREEN_WIDTH, pathWidthRatio, startTimes, endTimes, 2)};
+	//BeatPath a = BeatPath(Renderer, SCREEN_WIDTH / 2,SCREEN_WIDTH, pathWidthRatio, 789);
+	asdf[0].renderPath(currentTick, BASS_ChannelGetPosition(bgm, BASS_POS_BYTE), timeBar.y);
+	//asdf[1].renderPath(currentTick, BASS_ChannelGetPosition(bgm, BASS_POS_BYTE), timeBar.y);
 
 	instruction.quit = false;
 	instruction.nextState = enums::MAIN_GAME;
