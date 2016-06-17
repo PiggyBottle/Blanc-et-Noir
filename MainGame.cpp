@@ -18,6 +18,7 @@ MainGame::MainGame(SDL_Renderer *gRenderer, InitVariables var)
 	this->uiTransitionTime = var.mainGame_ui_transition_time;
 	this->timeBar = { 0,5 * (SCREEN_HEIGHT / 6),SCREEN_WIDTH,10 };
 	this->pathWidthRatio = var.path_width_ratio;
+	this->initVariables = var;
 }
 
 void MainGame::init(Instruction nextInstruction)
@@ -26,11 +27,14 @@ void MainGame::init(Instruction nextInstruction)
 	startUpTick = currentTick;
 	startUpFadeInBackgroundFinishTime = currentTick;
 	
-	//Load Texutures
+	//Load Textures
 	char *z = "gamebg.jpg";
 	bg = loadTexture(z, Renderer);
 	if (bg == NULL) { printf("error loading texture"); }
 	SDL_SetTextureBlendMode(bg, SDL_BLENDMODE_BLEND);
+
+	//Load Beat Map
+	beatMap = BeatMap(Renderer, initVariables);
 
 	
 
@@ -70,16 +74,7 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	SDL_RenderFillRect(Renderer, &timeBar);
 
 	//Blit map
-	QWORD startTimes[2];
-	startTimes[0] = 789;
-	startTimes[1] = 2260;
-	QWORD endTimes[2];
-	endTimes[0] = 1000;
-	endTimes[1] = 2400;
-	BeatPath asdf[] = {BeatPath(Renderer, SCREEN_WIDTH / 2,SCREEN_WIDTH, pathWidthRatio, startTimes, endTimes, 2)};
-	//BeatPath a = BeatPath(Renderer, SCREEN_WIDTH / 2,SCREEN_WIDTH, pathWidthRatio, 789);
-	asdf[0].renderPath(currentTick, BASS_ChannelGetPosition(bgm, BASS_POS_BYTE), timeBar.y);
-	//asdf[1].renderPath(currentTick, BASS_ChannelGetPosition(bgm, BASS_POS_BYTE), timeBar.y);
+	beatMap.render(currentTick, BASS_ChannelGetPosition(bgm, BASS_POS_BYTE), timeBar.y);
 
 	instruction.quit = false;
 	instruction.nextState = enums::MAIN_GAME;

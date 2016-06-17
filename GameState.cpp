@@ -137,7 +137,7 @@ Instruction MainMenu::process(SDL_Event e, Instruction nextInstruction)
 	instruction.quit = false;
 	if (e.type == SDL_KEYDOWN)
 	{
-		instruction.songToLoad = enums::FOR_SEASONS;
+		instruction.songToLoad = enums::UNRAVEL;
 		instruction.nextState = enums::MAIN_GAME;
 		uninit();
 	}

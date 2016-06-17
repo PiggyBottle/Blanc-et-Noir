@@ -1,6 +1,7 @@
 #pragma once
 #include "enums.h"
 #include "GameState.h"
+#include "BeatMap.h"
 #include <SDL.h>
 
 
@@ -25,4 +26,6 @@ private:
 	int processTimeBarY();
 	unsigned long bgm;
 	float pathWidthRatio;
+	BeatMap beatMap;
+	InitVariables initVariables;
 };
