@@ -20,11 +20,13 @@ BeatMap::~BeatMap()
 std::vector<BeatPath> BeatMap::getBeatPath()
 {
 	StartEnd startEnd;
-	startEnd.start = { 1000 };
+	startEnd.start = { 800 };
 	startEnd.end = { 1400 };
+	std::vector<PathMotion> pathMotion;
+	PathMotion pM = { enums::LINEAR_SLIDE, 1000, 1100, 0.5,0.7};
+	pathMotion.push_back(pM);
 	std::vector<BeatPath> buffer(2);
-	buffer = { BeatPath(Renderer, SCREEN_WIDTH / 2, SCREEN_WIDTH,initVariables.path_width_ratio,startEnd),
-	BeatPath(Renderer, SCREEN_WIDTH / 3, SCREEN_WIDTH,initVariables.path_width_ratio,startEnd) };
+	buffer = { BeatPath(Renderer, 0.5, SCREEN_WIDTH,initVariables.path_width_ratio,startEnd,pathMotion), BeatPath(Renderer, 0.3, SCREEN_WIDTH,initVariables.path_width_ratio,startEnd,pathMotion) };
 	
 
 	return buffer;

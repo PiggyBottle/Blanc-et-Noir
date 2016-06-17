@@ -52,7 +52,9 @@ struct StartEnd {
 };
 
 struct PathMotion {
-	std::vector<QWORD> start;
-	std::vector<QWORD> end;
-	std::vector<enums::motions> motion;
+	enums::motions motion;
+	QWORD start_position;
+	QWORD end_position;
+	float start_x;
+	float end_x;
 };
