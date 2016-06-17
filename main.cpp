@@ -36,10 +36,11 @@ int main(int argc, char* args[]) {
 	no_event.user.code = 2;
 	no_event.user.data1 = NULL;
 	no_event.user.data2 = NULL;
-
+	
 	//Game Loop
 	while (!quit)
 	{
+		
 		while (SDL_PollEvent(&event) != 0)
 		{
 			//User requests quit

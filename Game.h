@@ -22,7 +22,8 @@ private:
 	int currentState;
 	Instruction nextInstruction, previousInstruction;
 	void uninitializeAllStates();
-	Uint32 msPerFrame, prevFrameTime, currentFrameTime;
+	Uint32  prevFrameTime, currentFrameTime;
+	float msPerFrame;
 	InitVariables initVariables;
 
 

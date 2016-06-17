@@ -25,7 +25,7 @@ bool Game::init()
 	this->gWindow = NULL;
 	bool success = true;
 
-	msPerFrame = 1000 / SCREEN_FPS;
+	msPerFrame =(1000.0f / ((float)SCREEN_FPS));
 	prevFrameTime = SDL_GetTicks();
 
 	//Initialize SDL
@@ -110,6 +110,7 @@ void Game::uninitializeAllStates()
 	for (int i = 0; i < enums::TOTAL_STATES; i++)
 	{
 		states[i]->uninit();
+		delete states[i];
 	}
 }
 
@@ -129,7 +130,8 @@ bool Game::newFrame(SDL_Event e)
 	currentFrameTime = SDL_GetTicks();
 	if (currentFrameTime - prevFrameTime < msPerFrame)
 	{
-		SDL_Delay(msPerFrame - (currentFrameTime - prevFrameTime));
+		SDL_Delay(((Uint32)msPerFrame) - (currentFrameTime - prevFrameTime));
 	}
+	prevFrameTime = currentFrameTime;
 	return nextInstruction.quit;
 }
