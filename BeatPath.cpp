@@ -2,17 +2,14 @@
 #include <stdio.h>
 
 BeatPath::BeatPath() {}
-BeatPath::BeatPath(SDL_Renderer *r, int center, int screenWidth, float widthRatio, std::vector<QWORD> start_times, std::vector<QWORD> end_times)
+BeatPath::BeatPath(SDL_Renderer *r, int center, int screenWidth, float widthRatio, StartEnd STARTEND)
 {
 	this->Renderer = r;
 	this->pathCenter = center;
 	this->SCREEN_WIDTH = screenWidth;
 	this->pathWidth = (int)(widthRatio * ((float)SCREEN_WIDTH));
 	
-	
-	startTimes = start_times;
-	endTimes = end_times;
-	
+	startEnd = STARTEND;
 
 }
 
@@ -59,9 +56,9 @@ SDL_Rect BeatPath::generatePathCenter(int timeBarY, Uint32 currentTick)
 bool BeatPath::pathIsOn(QWORD songPosition)
 {
 	std::vector<QWORD>::const_iterator a, b;
-	a = startTimes.begin();
-	b = endTimes.begin();
-	while (a != startTimes.end() && b != endTimes.end()) 
+	a = startEnd.start.begin();
+	b = startEnd.end.begin();
+	while (a != startEnd.start.end() && b != startEnd.end.end()) 
 	{
 		if (songPosition > *a && songPosition < *b)
 		{

@@ -19,11 +19,12 @@ BeatMap::~BeatMap()
 
 std::vector<BeatPath> BeatMap::getBeatPath()
 {
-	//std::vector<QWORD> a(1), b(1);
+	StartEnd startEnd;
+	startEnd.start = { 1000 };
+	startEnd.end = { 1400 };
 	std::vector<BeatPath> buffer(2);
-	std::vector<QWORD> a= { 1000 };
-	std::vector<QWORD> b = { 1400 };
-	buffer = { BeatPath(Renderer, SCREEN_WIDTH / 2, SCREEN_WIDTH,initVariables.path_width_ratio,a,b),BeatPath(Renderer, SCREEN_WIDTH / 3, SCREEN_WIDTH,initVariables.path_width_ratio,a,b) };
+	buffer = { BeatPath(Renderer, SCREEN_WIDTH / 2, SCREEN_WIDTH,initVariables.path_width_ratio,startEnd),
+	BeatPath(Renderer, SCREEN_WIDTH / 3, SCREEN_WIDTH,initVariables.path_width_ratio,startEnd) };
 	
 
 	return buffer;

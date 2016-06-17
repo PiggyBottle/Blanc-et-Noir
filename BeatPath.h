@@ -7,15 +7,15 @@
 class BeatPath
 {
 public:
-	BeatPath(SDL_Renderer *r, int center, int screenWidth, float widthRatio, std::vector<QWORD> start_times, std::vector<QWORD> end_times);
+	BeatPath(SDL_Renderer *r, int center, int screenWidth, float widthRatio, StartEnd startEnd);
 	BeatPath();
 	~BeatPath();
-	int pathCenter = 0;
-	std::vector<QWORD> startTimes,endTimes;
 	void renderPath(Uint32 currentTick, QWORD songPosition, int timeBarY);
 private:
 	SDL_Renderer *Renderer;
+	StartEnd startEnd;
 	int pathWidth;
+	int pathCenter = 0;
 	int SCREEN_WIDTH;
 	int pathCenterThickness = 5;
 	RGB pathColor = {255,0,0};

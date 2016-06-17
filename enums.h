@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+#include <bass.h>
 
 namespace enums 
 {
@@ -14,6 +16,10 @@ namespace enums
 		FOR_SEASONS,
 		TOTAL_SONGS,
 		NO_SONGS
+	};
+
+	enum motions {
+		LINEAR_SLIDE
 	};
 }
 
@@ -40,4 +46,13 @@ struct RGB {
 	int b;
 };
 
+struct StartEnd {
+	std::vector<QWORD> start;
+	std::vector<QWORD> end;
+};
 
+struct PathMotion {
+	std::vector<QWORD> start;
+	std::vector<QWORD> end;
+	std::vector<enums::motions> motion;
+};
