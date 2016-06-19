@@ -1,6 +1,8 @@
 #pragma once
+#include <SDL.h>
 #include <vector>
 #include <bass.h>
+
 
 namespace enums 
 {
@@ -38,6 +40,7 @@ struct InitVariables {
 	int mainGame_bg_alpha;
 	int mainGame_ui_transition_time;
 	float path_width_ratio;
+	Uint8 path_highlight_alpha;
 };
 
 struct RGB {

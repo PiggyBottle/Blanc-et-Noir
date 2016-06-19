@@ -2,12 +2,13 @@
 #include <stdio.h>
 
 BeatPath::BeatPath() {}
-BeatPath::BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION)
+BeatPath::BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, Uint8 path_highlight_alpha ,StartEnd STARTEND, std::vector<PathMotion> PATHMOTION)
 {
 	this->Renderer = r;
 	this->pathCenter = center;
 	this->SCREEN_WIDTH = screenWidth;
 	this->pathWidth = widthRatio;
+	this->pathHighlightAlpha = path_highlight_alpha;
 	
 	startEnd = STARTEND;
 	pathMotions = PATHMOTION;
@@ -24,7 +25,18 @@ void BeatPath::renderPath(Uint32 currentTick, QWORD songPosition, int timeBarY)
 	songPosition /= 1000;
 	SDL_Rect centerOfPath = generatePathCenter(timeBarY, songPosition);
 	if (!pathIsOn(songPosition)) { return; }
+
+	//Highlight path
+	SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
+	SDL_Rect highlight = { 0,0,0,timeBarY };
+	highlight.x = centerOfPath.x - ((int)(((float)SCREEN_WIDTH) * pathWidth));
+	highlight.w = (int)(((float)SCREEN_WIDTH)*(2.0 * pathWidth));
+	SDL_SetRenderDrawColor(Renderer,51, 204, 255, 155);
+	SDL_RenderFillRect(Renderer, &highlight);
+	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+
 	//Draw Path Center
+	SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_NONE);
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
 	SDL_RenderFillRect(Renderer, &centerOfPath);
 
@@ -34,35 +46,6 @@ void BeatPath::renderPath(Uint32 currentTick, QWORD songPosition, int timeBarY)
 	SDL_RenderFillRect(Renderer, &border);
 	border.x = centerOfPath.x + ((int)(((float)SCREEN_WIDTH) * pathWidth));
 	SDL_RenderFillRect(Renderer, &border);
-
-	/*
-	centerOfPath.w = 1;
-	//WARNING: pathCenter changes with motion. Find a way to fix this bug
-	centerOfPath.x = (int)(((float)SCREEN_WIDTH)*(pathCenter - pathWidth));
-	SDL_RenderFillRect(Renderer, &centerOfPath);
-	centerOfPath.x = (int)(((float)SCREEN_WIDTH)*(pathCenter + pathWidth));
-	SDL_RenderFillRect(Renderer, &centerOfPath);
-	*/
-
-	//Highlight path
-	SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
-	SDL_Rect highlight = { 0,0,0,timeBarY };
-	highlight.x = centerOfPath.x - ((int)(((float)SCREEN_WIDTH) * pathWidth));
-	highlight.w = (int)(((float)SCREEN_WIDTH)*(2.0 * pathWidth));
-	SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 50);
-	SDL_RenderFillRect(Renderer, &highlight);
-	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-
-	/*
-	SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
-	centerOfPath.x = (int)(((float)SCREEN_WIDTH)*(pathCenter - pathWidth));
-	centerOfPath.w = (int)(((float)SCREEN_WIDTH)*(2.0 * pathWidth));
-	SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 50);
-	SDL_RenderFillRect(Renderer, &centerOfPath);
-	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-	*/
-
-
 
 }
 

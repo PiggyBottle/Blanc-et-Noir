@@ -9,6 +9,7 @@ BeatMap::BeatMap(SDL_Renderer *r, InitVariables var)
 	this->SCREEN_HEIGHT = var.screen_height;
 	this->pathWidthRatio = var.path_width_ratio;
 	this->SCREEN_WIDTH = var.screen_width;
+	this->pathHighlightAlpha = var.path_highlight_alpha;
 	beatPath = getBeatPath();
 }
 BeatMap::BeatMap() {}
@@ -26,7 +27,7 @@ std::vector<BeatPath> BeatMap::getBeatPath()
 	PathMotion pM = { enums::LINEAR_SLIDE, 1000, 1100, 0.5f,0.7f};
 	pathMotion.push_back(pM);
 	std::vector<BeatPath> buffer(2);
-	buffer = { BeatPath(Renderer, 0.5, SCREEN_WIDTH,initVariables.path_width_ratio,startEnd,pathMotion), BeatPath(Renderer, 0.3, SCREEN_WIDTH,initVariables.path_width_ratio,startEnd,pathMotion) };
+	buffer = { BeatPath(Renderer, 0.5f, SCREEN_WIDTH,initVariables.path_width_ratio,pathHighlightAlpha,startEnd,pathMotion), BeatPath(Renderer, 0.3f, SCREEN_WIDTH,initVariables.path_width_ratio,pathHighlightAlpha,startEnd,pathMotion) };
 	
 
 	return buffer;

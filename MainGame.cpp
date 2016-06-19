@@ -28,7 +28,7 @@ void MainGame::init(Instruction nextInstruction)
 	startUpFadeInBackgroundFinishTime = currentTick;
 	
 	//Load Textures
-	char *z = "gamebg.jpg";
+	char *z = "gamebg2.jpg";
 	bg = loadTexture(z, Renderer);
 	if (bg == NULL) { printf("error loading texture"); }
 	SDL_SetTextureBlendMode(bg, SDL_BLENDMODE_BLEND);

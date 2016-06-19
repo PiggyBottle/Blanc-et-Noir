@@ -16,9 +16,10 @@ int main(int argc, char* args[]) {
 	var.screen_fps = 60;
 	var.startup_screen_delay = 2000;
 	var.maingame_startup_fadein_time = 1000;
-	var.mainGame_bg_alpha = 55;
+	var.mainGame_bg_alpha = 255;
 	var.mainGame_ui_transition_time = 500;
 	var.path_width_ratio = (float)(1.0 / 15.0);
+	var.path_highlight_alpha = (Uint8)155;
 
 	Game game = Game(var);
 

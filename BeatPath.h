@@ -7,7 +7,7 @@
 class BeatPath
 {
 public:
-	BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, StartEnd STARTEND,std::vector<PathMotion> PATHMOTION);
+	BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, Uint8 path_highlight_alpha, StartEnd STARTEND,std::vector<PathMotion> PATHMOTION);
 	BeatPath();
 	~BeatPath();
 	void renderPath(Uint32 currentTick, QWORD songPosition, int timeBarY);
@@ -24,6 +24,7 @@ private:
 	SDL_Rect generatePathCenter(int timeBarY, QWORD currentPosition);
 	bool pathIsOn(QWORD songPosition);
 	std::vector<PathMotion> pathMotions;
+	Uint8 pathHighlightAlpha;
 
 
 };

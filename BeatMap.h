@@ -17,5 +17,7 @@ private:
 	InitVariables initVariables;
 	int SCREEN_HEIGHT, SCREEN_WIDTH;
 	float pathWidthRatio;
+	Uint8 pathHighlightAlpha;
+	
 };
 
