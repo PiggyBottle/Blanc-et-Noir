@@ -2,13 +2,14 @@
 #include <stdio.h>
 
 BeatPath::BeatPath() {}
-BeatPath::BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, Uint8 path_highlight_alpha ,StartEnd STARTEND, std::vector<PathMotion> PATHMOTION)
+BeatPath::BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, Uint8 path_highlight_alpha, float note_radius_ratio,StartEnd STARTEND, std::vector<PathMotion> PATHMOTION)
 {
 	this->Renderer = r;
 	this->pathCenter = center;
 	this->SCREEN_WIDTH = screenWidth;
 	this->pathWidth = widthRatio;
 	this->pathHighlightAlpha = path_highlight_alpha;
+	this->noteRadiusRatio = note_radius_ratio;
 	
 	startEnd = STARTEND;
 	pathMotions = PATHMOTION;
@@ -20,9 +21,8 @@ BeatPath::~BeatPath()
 {
 }
 
-void BeatPath::renderPath(Uint32 currentTick, QWORD songPosition, int timeBarY)
+void BeatPath::renderPath(Uint32 currentTick, double songPosition, int timeBarY)
 {
-	songPosition /= 1000;
 	SDL_Rect centerOfPath = generatePathCenter(timeBarY, songPosition);
 	if (!pathIsOn(songPosition)) { return; }
 
@@ -47,9 +47,25 @@ void BeatPath::renderPath(Uint32 currentTick, QWORD songPosition, int timeBarY)
 	border.x = centerOfPath.x + ((int)(((float)SCREEN_WIDTH) * pathWidth));
 	SDL_RenderFillRect(Renderer, &border);
 
+	//Draw beat notes
+	drawBeatNotes(songPosition, timeBarY);
+
 }
 
-SDL_Rect BeatPath::generatePathCenter(int timeBarY, QWORD currentPosition)
+void BeatPath::drawBeatNotes(double songPosition, int timeBarY)
+{
+	for (std::vector<BeatNote>::iterator i = beatNotes.begin(); i != beatNotes.end(); ++i)
+	{
+		//Delete notes that have been hit
+
+		//Delete expired notes (and register a break)
+
+		//Draw active notes
+	}
+}
+
+
+SDL_Rect BeatPath::generatePathCenter(int timeBarY, double currentPosition)
 {
 	SDL_Rect rect = {0,0,pathCenterThickness,timeBarY};
 
@@ -67,7 +83,7 @@ SDL_Rect BeatPath::generatePathCenter(int timeBarY, QWORD currentPosition)
 	return rect;
 }
 
-float BeatPath::processPathMotionX(PathMotion pathMotion, QWORD currentPosition)
+float BeatPath::processPathMotionX(PathMotion pathMotion, double currentPosition)
 {
 	if (pathMotion.motion == enums::LINEAR_SLIDE)
 	{
@@ -76,9 +92,9 @@ float BeatPath::processPathMotionX(PathMotion pathMotion, QWORD currentPosition)
 	}
 	return 0;
 }
-bool BeatPath::pathIsOn(QWORD songPosition)
+bool BeatPath::pathIsOn(double songPosition)
 {
-	std::vector<QWORD>::const_iterator a, b;
+	std::vector<double>::const_iterator a, b;
 	a = startEnd.start.begin();
 	b = startEnd.end.begin();
 	while (a != startEnd.start.end() && b != startEnd.end.end()) 

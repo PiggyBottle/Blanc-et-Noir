@@ -1,6 +1,7 @@
 #include "MainGame.h"
 #include "BeatPath.h"
 #include <bass.h>
+#include <bassflac.h>
 #include <cmath>
 
 
@@ -42,7 +43,7 @@ void MainGame::init(Instruction nextInstruction)
 
 	const char *listOfSongs[enums::TOTAL_SONGS] = { "Unravel.flac", "ForSeasons.flac" };
 	//Last argument in this function should be replaced with "BASS_SAMPLE_LOOP" flag if you want to repeat
-	bgm = BASS_StreamCreateFile(false, listOfSongs[nextInstruction.songToLoad], 0, 0, 0);
+	bgm = BASS_FLAC_StreamCreateFile(false, listOfSongs[nextInstruction.songToLoad], 0, 0, 0);
 	//BASS_ChannelSetPosition(bgm, 1000000, BASS_POS_BYTE);
 	BASS_ChannelPlay(bgm, false);
 
@@ -74,7 +75,7 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	SDL_RenderFillRect(Renderer, &timeBar);
 
 	//Blit map
-	beatMap.render(currentTick, BASS_ChannelGetPosition(bgm, BASS_POS_BYTE), timeBar.y);
+	beatMap.render(currentTick, BASS_ChannelBytes2Seconds(bgm,(BASS_ChannelGetPosition(bgm, BASS_POS_BYTE))), timeBar.y);
 
 	instruction.quit = false;
 	instruction.nextState = enums::MAIN_GAME;

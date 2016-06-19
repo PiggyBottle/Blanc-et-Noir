@@ -10,13 +10,13 @@ public:
 	BeatMap(SDL_Renderer *r, InitVariables var);
 	BeatMap();
 	~BeatMap();
-	void render(Uint32 currentTick, QWORD currentMusicPosition, int timeBarY);
+	void render(Uint32 currentTick, double currentMusicPosition, int timeBarY);
 private:
 	SDL_Renderer *Renderer;
 	std::vector<BeatPath> beatPath, getBeatPath();
 	InitVariables initVariables;
 	int SCREEN_HEIGHT, SCREEN_WIDTH;
-	float pathWidthRatio;
+	float pathWidthRatio, noteRadiusRatio;
 	Uint8 pathHighlightAlpha;
 	
 };

@@ -23,6 +23,10 @@ namespace enums
 	enum motions {
 		LINEAR_SLIDE
 	};
+
+	enum noteType {
+		SINGLE_HIT
+	};
 }
 
 struct Instruction {
@@ -41,6 +45,7 @@ struct InitVariables {
 	int mainGame_ui_transition_time;
 	float path_width_ratio;
 	Uint8 path_highlight_alpha;
+	float note_radius_ratio;
 };
 
 struct RGB {
@@ -50,14 +55,21 @@ struct RGB {
 };
 
 struct StartEnd {
-	std::vector<QWORD> start;
-	std::vector<QWORD> end;
+	std::vector<double> start;
+	std::vector<double> end;
 };
 
 struct PathMotion {
 	enums::motions motion;
-	QWORD start_position;
-	QWORD end_position;
+	double start_position;
+	double end_position;
 	float start_x;
 	float end_x;
+};
+
+struct BeatNote {
+	enums::noteType note_type;
+	double start_position;
+	double end_position;
+
 };
