@@ -19,15 +19,18 @@ private:
 	float pathCenter = 0;
 	int SCREEN_WIDTH;
 	int pathCenterThickness = 5;
-	int computeCenterOfPath(double currentPosition);
-	float processPathMotionX(PathMotion pathMotion, double currentPosition);
-	RGB pathColor = {255,0,0};
+	int currentPathWidth,currentCenterOfPath;
+	void computeCenterOfPath(double currentPosition);
+	void computePathWidth(double currentPosition);
+	float processPathMotionX(PathMotion pathMotion, double currentPosition, float *endpoint);
+	RGB pathColor = { 51, 204, 255 };
 	bool pathIsOn(double songPosition);
-	std::vector<PathMotion> pathMotions;
+	std::vector<PathMotion> pathMotions,pathWidthMotions;
 	Uint8 pathHighlightAlpha;
 	std::vector<BeatNote> beatNotes;
 	void drawPathCenter(int centerOfPath, int timeBarY);
 	void drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path);
+	void drawPathHighlight(double songPosition, int timeBarY);
 	void renderBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time,int center_of_path, std::vector<BeatNote>::iterator beat_note);
 	
 

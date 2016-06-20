@@ -25,30 +25,37 @@ BeatPath::~BeatPath()
 
 void BeatPath::renderPath(Uint32 currentTick, double songPosition, int timeBarY, double beatnote_buffer_time)
 {
-	int centerOfPath = computeCenterOfPath(songPosition);
+	//currentCenterOfPath and currentPathWidth are already in pixels
+	computeCenterOfPath(songPosition);
+	computePathWidth(songPosition);
+
+	//The idea is to do all computing and calculation before rendering, and then break off if there's no need render.
 	if (!pathIsOn(songPosition)) { return; }
 
 	//Highlight path
+	drawPathHighlight(songPosition, timeBarY);
+	/*
 	SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
 	SDL_Rect highlight = { 0,0,0,timeBarY };
-	highlight.x = centerOfPath - ((int)(((float)SCREEN_WIDTH) * pathWidth));
+	highlight.x = currentCenterOfPath - ((int)(((float)SCREEN_WIDTH) * pathWidth));
 	highlight.w = (int)(((float)SCREEN_WIDTH)*(2.0 * pathWidth));
 	SDL_SetRenderDrawColor(Renderer,51, 204, 255, 155);
 	SDL_RenderFillRect(Renderer, &highlight);
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+	*/
 
 	//Draw Path Center
-	drawPathCenter(centerOfPath, timeBarY);
+	drawPathCenter(currentCenterOfPath, timeBarY);
 
 	//Draw borders
 	SDL_Rect border = { 0,0,1,timeBarY };
-	border.x = centerOfPath - ((int)(((float)SCREEN_WIDTH) * pathWidth));
+	border.x = currentCenterOfPath - ((int)(((float)SCREEN_WIDTH) * pathWidth));
 	SDL_RenderFillRect(Renderer, &border);
-	border.x = centerOfPath + ((int)(((float)SCREEN_WIDTH) * pathWidth));
+	border.x = currentCenterOfPath + ((int)(((float)SCREEN_WIDTH) * pathWidth));
 	SDL_RenderFillRect(Renderer, &border);
 
 	//Draw beat notes
-	drawBeatNotes(songPosition, timeBarY, beatnote_buffer_time, centerOfPath);
+	drawBeatNotes(songPosition, timeBarY, beatnote_buffer_time, currentCenterOfPath);
 
 }
 
@@ -91,22 +98,55 @@ void BeatPath::renderBeatNotes(double songPosition, int timeBarY, double beatnot
 	
 }
 
-int BeatPath::computeCenterOfPath(double currentPosition)
+void BeatPath::drawPathHighlight(double songPosition, int timeBarY)
+{
+	SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
+	SDL_Rect highlight = { 0,0,0,timeBarY };
+	highlight.x = currentCenterOfPath - currentPathWidth;
+	highlight.w = 2 * currentPathWidth;
+	SDL_SetRenderDrawColor(Renderer, pathColor.r, pathColor.g, pathColor.b, 155);
+	SDL_RenderFillRect(Renderer, &highlight);
+	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+
+}
+
+void BeatPath::computePathWidth(double currentPosition)
+{
+	for (std::vector<PathMotion>::iterator i = pathWidthMotions.begin(); i != pathWidthMotions.end(); ++i)
+	{
+		if (i->end_position < currentPosition)
+		{
+			pathWidth = i->end_x;
+		}
+		else if (i->start_position < currentPosition && currentPosition < i->end_position)
+		{
+			currentPathWidth =(int)((((float)SCREEN_WIDTH) * processPathMotionX(*i, currentPosition, &pathWidth)));
+			return;
+		}
+	}
+	currentPathWidth = (int)(((float)SCREEN_WIDTH) * pathWidth);
+}
+
+
+void BeatPath::computeCenterOfPath(double currentPosition)
 {
 	int centerOfPath;
 
 	for (std::vector<PathMotion>::iterator i = pathMotions.begin(); i != pathMotions.end(); ++i)
 	{ 
-		if (i->start_position < currentPosition && currentPosition < i->end_position)
+		if (i->end_position < currentPosition)
 		{
-			centerOfPath =(int)((((float)SCREEN_WIDTH) * processPathMotionX(*i, currentPosition)));
-			return centerOfPath;
+			pathCenter = i->end_x;
+		}
+		else if (i->start_position < currentPosition && currentPosition < i->end_position)
+		{
+			currentCenterOfPath =(int)((((float)SCREEN_WIDTH) * processPathMotionX(*i, currentPosition, &pathCenter)));
+			return;
 		}
 	}
 
 
-	centerOfPath =(int)( (((float)SCREEN_WIDTH)*(pathCenter)));
-	return centerOfPath;
+	currentCenterOfPath =(int)( (((float)SCREEN_WIDTH)*(pathCenter)));
 }
 
 void BeatPath::drawPathCenter(int centerOfPath, int timeBarY)
@@ -118,11 +158,11 @@ void BeatPath::drawPathCenter(int centerOfPath, int timeBarY)
 }
 
 
-float BeatPath::processPathMotionX(PathMotion pathMotion, double currentPosition)
+float BeatPath::processPathMotionX(PathMotion pathMotion, double currentPosition, float *endpoint)
 {
 	if (pathMotion.motion == enums::LINEAR_SLIDE)
 	{
-		pathCenter = pathMotion.end_x;
+		*endpoint = pathMotion.end_x;
 		return (((float)pathMotion.start_x) + (((float)(pathMotion.end_x - pathMotion.start_x)) * (((float)(currentPosition - pathMotion.start_position))/((float)(pathMotion.end_position - pathMotion.start_position)))));
 	}
 	return 0;
