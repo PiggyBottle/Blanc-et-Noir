@@ -7,10 +7,10 @@
 class BeatPath
 {
 public:
-	BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, Uint8 path_highlight_alpha,float note_radius_ratio, StartEnd STARTEND,std::vector<PathMotion> PATHMOTION);
+	BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, Uint8 path_highlight_alpha,float note_radius_ratio, StartEnd STARTEND,std::vector<PathMotion> PATHMOTION, std::vector<BeatNote> beat_notes);
 	BeatPath();
 	~BeatPath();
-	void renderPath(Uint32 currentTick, double songPosition, int timeBarY);
+	void renderPath(Uint32 currentTick, double songPosition, int timeBarY, double beatnote_buffer_time);
 private:
 	SDL_Renderer *Renderer;
 	StartEnd startEnd;
@@ -26,7 +26,9 @@ private:
 	std::vector<PathMotion> pathMotions;
 	Uint8 pathHighlightAlpha;
 	std::vector<BeatNote> beatNotes;
-	void drawBeatNotes(double songPosition, int timeBarY);
+	void drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path);
+	void renderBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time,int center_of_path, std::vector<BeatNote>::iterator beat_note);
+	
 
 
 };

@@ -46,6 +46,7 @@ struct InitVariables {
 	float path_width_ratio;
 	Uint8 path_highlight_alpha;
 	float note_radius_ratio;
+	double note_buffer_time;
 };
 
 struct RGB {

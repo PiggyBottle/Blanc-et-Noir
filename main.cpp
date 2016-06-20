@@ -11,8 +11,8 @@
 int main(int argc, char* args[]) {
 
 	InitVariables var;
-	var.screen_width = 1280;
-	var.screen_height = 720;
+	var.screen_width = 1080;
+	var.screen_height = 620;
 	var.screen_fps = 60;
 	var.startup_screen_delay = 2000;
 	var.maingame_startup_fadein_time = 1000;
@@ -21,6 +21,8 @@ int main(int argc, char* args[]) {
 	var.path_width_ratio = (float)(1.0 / 15.0);
 	var.path_highlight_alpha = (Uint8)155;
 	var.note_radius_ratio = (float)(1.0 / 60.0);
+	//Only notes within this buffer time will be blitted
+	var.note_buffer_time = (double)1.5;
 
 	Game game = Game(var);
 

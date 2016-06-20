@@ -18,6 +18,7 @@ private:
 	int SCREEN_HEIGHT, SCREEN_WIDTH;
 	float pathWidthRatio, noteRadiusRatio;
 	Uint8 pathHighlightAlpha;
+	double beatNoteBufferTime;
 	
 };
 

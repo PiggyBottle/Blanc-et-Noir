@@ -1,8 +1,9 @@
 #include "BeatPath.h"
 #include <stdio.h>
+#include <SDL2_gfxPrimitives.h>
 
 BeatPath::BeatPath() {}
-BeatPath::BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, Uint8 path_highlight_alpha, float note_radius_ratio,StartEnd STARTEND, std::vector<PathMotion> PATHMOTION)
+BeatPath::BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, Uint8 path_highlight_alpha, float note_radius_ratio,StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<BeatNote> beat_notes)
 {
 	this->Renderer = r;
 	this->pathCenter = center;
@@ -10,6 +11,7 @@ BeatPath::BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRa
 	this->pathWidth = widthRatio;
 	this->pathHighlightAlpha = path_highlight_alpha;
 	this->noteRadiusRatio = note_radius_ratio;
+	beatNotes = beat_notes;
 	
 	startEnd = STARTEND;
 	pathMotions = PATHMOTION;
@@ -21,7 +23,7 @@ BeatPath::~BeatPath()
 {
 }
 
-void BeatPath::renderPath(Uint32 currentTick, double songPosition, int timeBarY)
+void BeatPath::renderPath(Uint32 currentTick, double songPosition, int timeBarY, double beatnote_buffer_time)
 {
 	SDL_Rect centerOfPath = generatePathCenter(timeBarY, songPosition);
 	if (!pathIsOn(songPosition)) { return; }
@@ -48,11 +50,11 @@ void BeatPath::renderPath(Uint32 currentTick, double songPosition, int timeBarY)
 	SDL_RenderFillRect(Renderer, &border);
 
 	//Draw beat notes
-	drawBeatNotes(songPosition, timeBarY);
+	drawBeatNotes(songPosition, timeBarY, beatnote_buffer_time, centerOfPath.x);
 
 }
 
-void BeatPath::drawBeatNotes(double songPosition, int timeBarY)
+void BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path)
 {
 	for (std::vector<BeatNote>::iterator i = beatNotes.begin(); i != beatNotes.end(); ++i)
 	{
@@ -61,9 +63,35 @@ void BeatPath::drawBeatNotes(double songPosition, int timeBarY)
 		//Delete expired notes (and register a break)
 
 		//Draw active notes
+		if (i->start_position - songPosition > beatnote_buffer_time) { break; }
+		renderBeatNotes(songPosition, timeBarY, beatnote_buffer_time, center_of_path, i);
 	}
 }
 
+
+void BeatPath::renderBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path, std::vector<BeatNote>::iterator beat_note)
+{
+	
+	Sint16 x[4], y[4], noteCenterY;
+
+	//Compute noteCenterY
+	double noteToBufferRatio = (beat_note->start_position - songPosition) / (beatnote_buffer_time);
+	noteCenterY = (Sint16) (((double)(SCREEN_WIDTH - timeBarY)) * (((double)1) - noteToBufferRatio));
+	
+	//Compute Vertex Array
+	x[0] = (Sint16)center_of_path;
+	y[0] = noteCenterY - ((Sint16)(noteRadiusRatio * ((float)SCREEN_WIDTH)));
+	x[1] = (Sint16)center_of_path - ((Sint16)(noteRadiusRatio * ((float)SCREEN_WIDTH)));
+	y[1] = noteCenterY;
+	x[2] = (Sint16)center_of_path;
+	y[2] = noteCenterY + ((Sint16)(noteRadiusRatio * ((float)SCREEN_WIDTH)));
+	x[3] = (Sint16)center_of_path + ((Sint16)(noteRadiusRatio * ((float)SCREEN_WIDTH)));
+	y[3] = noteCenterY;
+
+	//Render note
+	filledPolygonRGBA(Renderer,x,y,4,0,0,0,255);
+	
+}
 
 SDL_Rect BeatPath::generatePathCenter(int timeBarY, double currentPosition)
 {
