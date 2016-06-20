@@ -23,16 +23,21 @@ BeatMap::~BeatMap()
 std::vector<BeatPath> BeatMap::getBeatPath()
 {
 	StartEnd startEnd;
-	startEnd.start = { 8.0 };
-	startEnd.end = { 14.0 };
-	std::vector<PathMotion> pathMotion;
-	PathMotion pM = { enums::LINEAR_SLIDE, 10.00, 11.00, 0.5f,0.7f};
+	startEnd.start = { 3.0 };
+	startEnd.end = { 15.0 };
+	std::vector<PathMotion> pathMotion,widthMotion;
+	PathMotion pM = { enums::LINEAR_SLIDE, 5.00, 5.50, 0.6f,0.8f};
 	pathMotion.push_back(pM);
-	std::vector<BeatPath> buffer(2);
+	PathMotion wM = { enums::LINEAR_SLIDE, 6.50, 7, 0.3f,(1.0f / 15.0f) };
+	widthMotion.push_back(wM);
+	std::vector<BeatPath> buffer;
 	std::vector<BeatNote> beatNotes;
 	BeatNote bn= { enums::SINGLE_HIT, 10.5,9.0 };
 	beatNotes.push_back(bn);
-	buffer = { BeatPath(Renderer, 0.5f, SCREEN_WIDTH,initVariables.path_width_ratio,pathHighlightAlpha,noteRadiusRatio,startEnd,pathMotion,beatNotes), BeatPath(Renderer, 0.3f, SCREEN_WIDTH,initVariables.path_width_ratio,pathHighlightAlpha,noteRadiusRatio,startEnd,pathMotion,beatNotes) };
+	buffer.push_back(BeatPath(Renderer, 0.6f, SCREEN_WIDTH,initVariables.path_width_ratio,pathHighlightAlpha,noteRadiusRatio,startEnd,pathMotion,widthMotion, beatNotes));
+	pM.start_x = 0.4f; pM.end_x = 0.2f;
+	pathMotion[0] = pM;
+	buffer.push_back(BeatPath(Renderer, 0.4f, SCREEN_WIDTH, initVariables.path_width_ratio, pathHighlightAlpha, noteRadiusRatio, startEnd, pathMotion, widthMotion, beatNotes));
 	
 
 	return buffer;

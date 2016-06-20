@@ -3,7 +3,7 @@
 #include <SDL2_gfxPrimitives.h>
 
 BeatPath::BeatPath() {}
-BeatPath::BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, Uint8 path_highlight_alpha, float note_radius_ratio,StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<BeatNote> beat_notes)
+BeatPath::BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, Uint8 path_highlight_alpha, float note_radius_ratio,StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes)
 {
 	this->Renderer = r;
 	this->pathCenter = center;
@@ -15,6 +15,7 @@ BeatPath::BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRa
 	
 	startEnd = STARTEND;
 	pathMotions = PATHMOTION;
+	pathWidthMotions = WIDTHMOTION;
 
 }
 
@@ -34,28 +35,34 @@ void BeatPath::renderPath(Uint32 currentTick, double songPosition, int timeBarY,
 
 	//Highlight path
 	drawPathHighlight(songPosition, timeBarY);
-	/*
-	SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
-	SDL_Rect highlight = { 0,0,0,timeBarY };
-	highlight.x = currentCenterOfPath - ((int)(((float)SCREEN_WIDTH) * pathWidth));
-	highlight.w = (int)(((float)SCREEN_WIDTH)*(2.0 * pathWidth));
-	SDL_SetRenderDrawColor(Renderer,51, 204, 255, 155);
-	SDL_RenderFillRect(Renderer, &highlight);
-	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-	*/
 
 	//Draw Path Center
 	drawPathCenter(currentCenterOfPath, timeBarY);
 
 	//Draw borders
+	drawBorders(timeBarY);
+	/*
 	SDL_Rect border = { 0,0,1,timeBarY };
 	border.x = currentCenterOfPath - ((int)(((float)SCREEN_WIDTH) * pathWidth));
 	SDL_RenderFillRect(Renderer, &border);
 	border.x = currentCenterOfPath + ((int)(((float)SCREEN_WIDTH) * pathWidth));
 	SDL_RenderFillRect(Renderer, &border);
+	*/
 
 	//Draw beat notes
 	drawBeatNotes(songPosition, timeBarY, beatnote_buffer_time, currentCenterOfPath);
+
+}
+
+void BeatPath::drawBorders(int timeBarY)
+{
+	printf("Drawing borders\n");
+	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+	SDL_Rect border = { 0,0,1,timeBarY };
+	border.x = currentCenterOfPath - currentPathWidth;
+	SDL_RenderFillRect(Renderer, &border);
+	border.x = currentCenterOfPath + currentPathWidth;
+	SDL_RenderFillRect(Renderer, &border);
 
 }
 
