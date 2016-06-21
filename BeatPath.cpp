@@ -41,13 +41,6 @@ void BeatPath::renderPath(Uint32 currentTick, double songPosition, int timeBarY,
 
 	//Draw borders
 	drawBorders(timeBarY);
-	/*
-	SDL_Rect border = { 0,0,1,timeBarY };
-	border.x = currentCenterOfPath - ((int)(((float)SCREEN_WIDTH) * pathWidth));
-	SDL_RenderFillRect(Renderer, &border);
-	border.x = currentCenterOfPath + ((int)(((float)SCREEN_WIDTH) * pathWidth));
-	SDL_RenderFillRect(Renderer, &border);
-	*/
 
 	//Draw beat notes
 	drawBeatNotes(songPosition, timeBarY, beatnote_buffer_time, currentCenterOfPath);
@@ -56,7 +49,6 @@ void BeatPath::renderPath(Uint32 currentTick, double songPosition, int timeBarY,
 
 void BeatPath::drawBorders(int timeBarY)
 {
-	printf("Drawing borders\n");
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
 	SDL_Rect border = { 0,0,1,timeBarY };
 	border.x = currentCenterOfPath - currentPathWidth;
@@ -88,7 +80,10 @@ void BeatPath::renderBeatNotes(double songPosition, int timeBarY, double beatnot
 
 	//Compute noteCenterY
 	double noteToBufferRatio = (beat_note->start_position - songPosition) / (beatnote_buffer_time);
-	noteCenterY = (Sint16) (((double)(SCREEN_WIDTH - timeBarY)) * (((double)1) - noteToBufferRatio));
+	if (noteToBufferRatio < 0) { 
+		noteToBufferRatio = 0; 
+	}
+	noteCenterY = (Sint16) (((double)(timeBarY)) * (((double)1) - noteToBufferRatio));
 	
 	//Compute Vertex Array
 	x[0] = (Sint16)center_of_path;
@@ -137,8 +132,6 @@ void BeatPath::computePathWidth(double currentPosition)
 
 void BeatPath::computeCenterOfPath(double currentPosition)
 {
-	int centerOfPath;
-
 	for (std::vector<PathMotion>::iterator i = pathMotions.begin(); i != pathMotions.end(); ++i)
 	{ 
 		if (i->end_position < currentPosition)

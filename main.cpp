@@ -22,7 +22,7 @@ int main(int argc, char* args[]) {
 	var.path_highlight_alpha = (Uint8)155;
 	var.note_radius_ratio = (float)(1.0 / 60.0);
 	//Only notes within this buffer time will be blitted
-	var.note_buffer_time = (double)1.5;
+	var.note_buffer_time = (double)1.0;
 
 	Game game = Game(var);
 
