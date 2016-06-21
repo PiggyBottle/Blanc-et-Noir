@@ -3,6 +3,7 @@
 #include <bass.h>
 #include <bassflac.h>
 #include <cmath>
+#include <SDL2_gfxPrimitives.h>
 
 
 
@@ -27,6 +28,7 @@ void MainGame::init(Instruction nextInstruction)
 	//Make object start-up before proceeding with game
 	startUpTick = currentTick;
 	startUpFadeInBackgroundFinishTime = currentTick;
+	uiHasFinishedTransitioning = false;
 	
 	//Load Textures
 	char *z = "gamebg2.jpg";
@@ -70,9 +72,13 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
 
 	//Blit UI
+	//int timeBarY = processTimeBarY();
+	//thickLineRGBA(Renderer, 0, timeBarY, SCREEN_WIDTH, timeBarY, 10, 0, 0, 0, 255);
+	
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-	timeBar.y = processTimeBarY();
+	if (!uiHasFinishedTransitioning) {timeBar.y = processTimeBarY();}
 	SDL_RenderFillRect(Renderer, &timeBar);
+	
 
 	//Blit map
 	beatMap.render(currentTick, BASS_ChannelBytes2Seconds(bgm,(BASS_ChannelGetPosition(bgm, BASS_POS_BYTE))), timeBar.y);
@@ -100,6 +106,7 @@ int MainGame::processTimeBarY()
 	}
 	else
 	{
+		uiHasFinishedTransitioning = true;
 		return 5 * (SCREEN_HEIGHT / 6);
 	}
 }
