@@ -33,7 +33,11 @@ std::vector<BeatPath> BeatMap::getBeatPath()
 	std::vector<BeatPath> buffer;
 	std::vector<BeatNote> beatNotes;
 	BeatNote bn= { enums::SINGLE_HIT, 10.5,9.0 };
-	beatNotes.push_back(bn);
+	for (int i = 0; i < 15; i++)
+	{
+		bn.start_position += 0.1f;
+		beatNotes.push_back(bn);
+	}
 	buffer.push_back(BeatPath(Renderer, 0.6f, SCREEN_WIDTH,initVariables.path_width_ratio,pathHighlightAlpha,noteRadiusRatio,startEnd,pathMotion,widthMotion, beatNotes));
 	pM.start_x = 0.4f; pM.end_x = 0.2f;
 	pathMotion[0] = pM;

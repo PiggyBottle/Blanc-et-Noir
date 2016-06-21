@@ -10,7 +10,8 @@ public:
 	GameState(SDL_Renderer *gRenderer);
 	GameState::GameState();
 	~GameState();
-	SDL_Texture *loadTexture(const char* path, SDL_Renderer *R);
+	SDL_Texture *loadTexture(std::string path, SDL_Renderer *R);
+	SDL_Texture *loadFont(SDL_Renderer *R, std::string fontName, int fontSize, std::string textureText, SDL_Color textColor);
 	virtual Instruction process(SDL_Event e, Instruction nextInstruction) { printf("wrong"); return instruction; };
 	virtual void uninit() {};
 private:
@@ -29,7 +30,7 @@ public:
 	virtual Instruction process(SDL_Event e, Instruction nextInstruction);
 private:
 	bool initted = false;
-	SDL_Texture *screen = NULL;
+	SDL_Texture *screen = NULL, *text = NULL;
 	long startTime;
 	SDL_Renderer *Renderer = NULL;
 	Instruction instruction;

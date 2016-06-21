@@ -3,6 +3,7 @@
 #include <memory>
 #include "enums.h"
 #include "GameState.h"
+#include <SDL_ttf.h>
 
 
 

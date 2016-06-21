@@ -68,6 +68,13 @@ bool Game::init()
 		success = false;
 	}
 
+	//Initialize TTF loading
+	if (TTF_Init() == -1)
+	{
+		printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
+		success = false;
+	}
+
 	//Initialize BASS module
 	if (!BASS_Init(-1, 44100, BASS_DEVICE_STEREO, 0, NULL)) {
 		printf("BASS initialization failed.\n");
@@ -102,6 +109,7 @@ void Game::uninit()
 
 	//Quit SDL subsystems
 	IMG_Quit();
+	TTF_Quit();
 	SDL_Quit();
 }
 

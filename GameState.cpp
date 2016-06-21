@@ -1,6 +1,7 @@
 #include "GameState.h"
 #include <stdio.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #include <cmath>
 
 GameState::GameState() 
@@ -15,13 +16,12 @@ GameState::GameState(SDL_Renderer *gRenderer)
 GameState::~GameState()
 {
 }
-
-SDL_Texture *GameState::loadTexture(const char* path, SDL_Renderer *R) {
+SDL_Texture *GameState::loadTexture(std::string path, SDL_Renderer *R) {
 	//The final texture
 	SDL_Texture* newTexture = NULL;
 
 	//Load image at specified path
-	SDL_Surface* loadedSurface = IMG_Load(path);
+	SDL_Surface* loadedSurface = IMG_Load(path.c_str());
 	if (loadedSurface == NULL)
 	{
 		printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
@@ -39,6 +39,32 @@ SDL_Texture *GameState::loadTexture(const char* path, SDL_Renderer *R) {
 		SDL_FreeSurface(loadedSurface);
 	}
 
+	return newTexture;
+}
+
+SDL_Texture *GameState::loadFont(SDL_Renderer *R, std::string fontName, int fontSize, std::string textureText, SDL_Color textColor)
+{
+	SDL_Texture *newTexture = NULL;
+	TTF_Font *font = TTF_OpenFont(fontName.c_str(), fontSize);
+	SDL_Surface *textSurface = TTF_RenderText_Blended(font, textureText.c_str(), textColor);
+	if (textSurface == NULL)
+	{
+		printf("Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError());
+	}
+	else
+	{
+		//Create texture from surface pixels
+		newTexture = SDL_CreateTextureFromSurface(R, textSurface);
+		if (newTexture == NULL)
+		{
+			printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError());
+		}
+		else {
+		}
+	}
+	SDL_FreeSurface(textSurface);
+	TTF_CloseFont(font);
+	font = NULL;
 	return newTexture;
 }
 
@@ -60,8 +86,7 @@ void StartingScreen::init()
 {
 	startTime = SDL_GetTicks();
 	//Load texture
-	const char * z = "startingmenuscreen.jpg";
-	screen = loadTexture(z,Renderer);
+	screen = loadTexture("startingmenuscreen.jpg",Renderer);
 	SDL_SetTextureBlendMode(screen, SDL_BLENDMODE_BLEND);
 	initted = true;
 }
@@ -78,7 +103,7 @@ Instruction StartingScreen::process(SDL_Event e, Instruction nextInstruction)
 {
 	if (!initted) {
 		init();
-		printf("in starting screen");
+		printf("in starting screen\n");
 	}
 	else
 	{
@@ -86,7 +111,6 @@ Instruction StartingScreen::process(SDL_Event e, Instruction nextInstruction)
 		//Render texture to screen
 		SDL_SetTextureAlphaMod(screen,(Uint8) (255.0 * (((float)currentTick - (float)startTime) / (float)fadeDelay)));
 		SDL_RenderCopyEx(Renderer, screen, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
-
 
 		if (!(currentTick - startTime < fadeDelay))
 		{
@@ -113,8 +137,7 @@ MainMenu::~MainMenu()
 void MainMenu::init()
 {
 	//Load texture
-	const char * z = "startingmenuscreen.jpg";
-	screen = loadTexture(z, Renderer);
+	screen = loadTexture("startingmenuscreen.jpg", Renderer);
 	initted = true;
 }
 
