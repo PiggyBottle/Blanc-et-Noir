@@ -1,5 +1,5 @@
 #include <SDL.h>
-#include <stdio.h>
+#include <iostream>
 #include <SDL_image.h>
 #include <SDL_mixer.h>
 #include <string>
@@ -18,16 +18,20 @@ int main(int argc, char* args[]) {
 	var.maingame_startup_fadein_time = 1000;
 	var.mainGame_bg_alpha = 255;
 	var.mainGame_ui_transition_time = 500;
+	var.timeBar_thickness = 8;
+	var.keySeparation_thickness = 4;
 	var.path_width_ratio = (float)(1.0 / 15.0);
 	var.path_highlight_alpha = (Uint8)155;
 	var.note_radius_ratio = (float)(1.0 / 60.0);
 	//Only notes within this buffer time will be blitted
 	var.note_buffer_time = (double)1.0;
+	//Notes later than this buffer time will count as a break
+	var.miss_note_buffer_time = (double)0.3;
 
 	Game game = Game(var);
 
 	if (game.init()) {
-		printf("initialized successfully\n");
+		std::cout << "initialized successfully" << std::endl;
 	}
 
 	//Main loop flag

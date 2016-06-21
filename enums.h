@@ -33,6 +33,7 @@ struct Instruction {
 	int nextState;
 	bool quit = false;
 	enums::songs songToLoad = enums::NO_SONGS;
+	int gameKeys = 4;
 };
 
 struct InitVariables {
@@ -43,10 +44,13 @@ struct InitVariables {
 	int maingame_startup_fadein_time;
 	int mainGame_bg_alpha;
 	int mainGame_ui_transition_time;
+	int timeBar_thickness;
+	int keySeparation_thickness;
 	float path_width_ratio;
 	Uint8 path_highlight_alpha;
 	float note_radius_ratio;
 	double note_buffer_time;
+	double miss_note_buffer_time;
 };
 
 struct RGB {

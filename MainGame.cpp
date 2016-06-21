@@ -17,7 +17,7 @@ MainGame::MainGame(SDL_Renderer *gRenderer, InitVariables var)
 	this->startUpFadeTime = var.maingame_startup_fadein_time;
 	this->bgAlpha = var.mainGame_bg_alpha;
 	this->uiTransitionTime = var.mainGame_ui_transition_time;
-	this->timeBar = { 0,5 * (SCREEN_HEIGHT / 6),SCREEN_WIDTH,10 };
+	this->timeBar = { 0,5 * (SCREEN_HEIGHT / 6),SCREEN_WIDTH,var.timeBar_thickness };
 	this->pathWidthRatio = var.path_width_ratio;
 	this->initVariables = var;
 }
@@ -31,11 +31,11 @@ void MainGame::init(Instruction nextInstruction)
 	
 	//Load Textures
 	bg = loadTexture("gamebg2.jpg", Renderer);
-	if (bg == NULL) { printf("error loading texture"); }
+	if (bg == NULL) { std::cout << "Error loading texture" << std::endl; }
 	SDL_SetTextureBlendMode(bg, SDL_BLENDMODE_BLEND);
 
 	//Load Beat Map
-	beatMap = BeatMap(Renderer, initVariables);
+	beatMap = BeatMap(Renderer, initVariables, nextInstruction.gameKeys);
 
 	
 
@@ -68,15 +68,14 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	//Blit Background image
 	SDL_SetTextureAlphaMod(bg, processBgAlpha());
 	SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
+	
+	//Blit map
+	beatMap.render(currentTick, BASS_ChannelBytes2Seconds(bgm,(BASS_ChannelGetPosition(bgm, BASS_POS_BYTE))), timeBarY);
 
 	//Blit UI
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-	if (!uiHasFinishedTransitioning) {timeBar.y = processTimeBarY();}
+	if (!uiHasFinishedTransitioning) { timeBarY = processTimeBarY(); timeBar.y = timeBarY - ((int)(0.5f * ((float)timeBar.h)));}
 	SDL_RenderFillRect(Renderer, &timeBar);
-	
-
-	//Blit map
-	beatMap.render(currentTick, BASS_ChannelBytes2Seconds(bgm,(BASS_ChannelGetPosition(bgm, BASS_POS_BYTE))), timeBar.y);
 
 	instruction.quit = false;
 	instruction.nextState = enums::MAIN_GAME;

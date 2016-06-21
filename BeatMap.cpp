@@ -1,17 +1,19 @@
 #include "BeatMap.h"
-#include <stdio.h>
+#include <iostream>
 
 
-BeatMap::BeatMap(SDL_Renderer *r, InitVariables var)
+BeatMap::BeatMap(SDL_Renderer *r, InitVariables var, int number_of_keys)
 {
 	this->Renderer = r;
 	this->initVariables = var;
 	this->SCREEN_HEIGHT = var.screen_height;
-	this->pathWidthRatio = var.path_width_ratio;
 	this->SCREEN_WIDTH = var.screen_width;
-	this->pathHighlightAlpha = var.path_highlight_alpha;
-	this->noteRadiusRatio = var.note_radius_ratio;
 	this->beatNoteBufferTime = var.note_buffer_time;
+	this->keySeparationThickness = var.keySeparation_thickness;
+
+	this->numberOfKeys = number_of_keys;
+	generateKeyCoordinates();
+
 	beatPath = getBeatPath();
 }
 BeatMap::BeatMap() {}
@@ -38,13 +40,24 @@ std::vector<BeatPath> BeatMap::getBeatPath()
 		bn.start_position += 0.1f;
 		beatNotes.push_back(bn);
 	}
-	buffer.push_back(BeatPath(Renderer, 0.6f, SCREEN_WIDTH,initVariables.path_width_ratio,pathHighlightAlpha,noteRadiusRatio,startEnd,pathMotion,widthMotion, beatNotes));
+	buffer.push_back(BeatPath(Renderer, 0.6f,initVariables,startEnd,pathMotion,widthMotion, beatNotes));
 	pM.start_x = 0.4f; pM.end_x = 0.2f;
 	pathMotion[0] = pM;
-	buffer.push_back(BeatPath(Renderer, 0.4f, SCREEN_WIDTH, initVariables.path_width_ratio, pathHighlightAlpha, noteRadiusRatio, startEnd, pathMotion, widthMotion, beatNotes));
+	buffer.push_back(BeatPath(Renderer, 0.4f,initVariables,startEnd, pathMotion, widthMotion, beatNotes));
 	
 
 	return buffer;
+}
+
+void BeatMap::generateKeyCoordinates()
+{
+	std::vector<int> coordinates(numberOfKeys+1);
+	int interval = (int)(((float)SCREEN_WIDTH) / ((float)numberOfKeys));
+
+	coordinates[0] = 0;
+	for (int i = 0; i < numberOfKeys; i++) { coordinates[i+1] = (i+1) * interval; }
+
+	keyCoordinates = coordinates;
 }
 
 void BeatMap::render(Uint32 currentTick, double currentMusicPosition, int timeBarY)
@@ -52,5 +65,13 @@ void BeatMap::render(Uint32 currentTick, double currentMusicPosition, int timeBa
 	for (std::vector<BeatPath>::iterator i = beatPath.begin(); i != beatPath.end(); ++i)
 	{
 		i->renderPath(currentTick, currentMusicPosition, timeBarY, beatNoteBufferTime);
+	}
+
+	SDL_Rect a = { 0,timeBarY,keySeparationThickness,SCREEN_HEIGHT - timeBarY };
+	for (int i = 1; i < numberOfKeys; i++)
+	{
+		SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+		a.x = keyCoordinates[i] - ((int)(0.5f * ((float)keySeparationThickness)));
+		SDL_RenderFillRect(Renderer, &a);
 	}
 }

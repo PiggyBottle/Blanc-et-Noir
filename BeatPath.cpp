@@ -1,16 +1,16 @@
 #include "BeatPath.h"
-#include <stdio.h>
 #include <SDL2_gfxPrimitives.h>
 
 BeatPath::BeatPath() {}
-BeatPath::BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, Uint8 path_highlight_alpha, float note_radius_ratio,StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes)
+BeatPath::BeatPath(SDL_Renderer *r, float center, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes)
 {
 	this->Renderer = r;
 	this->pathCenter = center;
-	this->SCREEN_WIDTH = screenWidth;
-	this->pathWidth = widthRatio;
-	this->pathHighlightAlpha = path_highlight_alpha;
-	this->noteRadiusRatio = note_radius_ratio;
+	this->SCREEN_WIDTH = var.screen_width;
+	this->pathWidth = var.path_width_ratio;
+	this->pathHighlightAlpha = var.path_highlight_alpha;
+	this->noteRadiusRatio = var.note_radius_ratio;
+	this->missNoteBufferTime = var.miss_note_buffer_time;
 	beatNotes = beat_notes;
 	
 	startEnd = STARTEND;

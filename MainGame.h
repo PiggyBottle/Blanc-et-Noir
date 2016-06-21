@@ -22,7 +22,7 @@ private:
 	SDL_Rect timeBar;
 	Instruction instruction;
 	bool initted = false, uiHasFinishedTransitioning = false;
-	int SCREEN_HEIGHT, SCREEN_WIDTH, startUpFadeTime, bgAlpha, uiTransitionTime, startUpFadeInBackgroundFinishTime;
+	int SCREEN_HEIGHT, SCREEN_WIDTH, startUpFadeTime, bgAlpha, uiTransitionTime, startUpFadeInBackgroundFinishTime, timeBarY;
 	int processTimeBarY();
 	unsigned long bgm;
 	float pathWidthRatio;

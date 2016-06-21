@@ -1,6 +1,6 @@
 #include "Game.h"
 #include "MainGame.h"
-#include <stdio.h>
+#include <iostream>
 #include <SDL_image.h>
 #include <bass.h>
 
@@ -31,21 +31,21 @@ bool Game::init()
 	//Initialize SDL
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
-		printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
+		std::cout << "SDL could not initialize! SDL Error: " << SDL_GetError() << std::endl;
 		success = false;
 	}
 
 	//Set texture filtering to linear
 	if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))
 	{
-		printf("Warning: Linear texture filtering not enabled!");
+		std::cout << "Warning: Linear texture filtering not enabled!" << std::endl;
 	}
 
 	//Create window
 	gWindow = SDL_CreateWindow("Rhythm Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	if (gWindow == NULL)
 	{
-		printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
+		std::cout << "Window could not be created! SDL Error: " << SDL_GetError() << std::endl;
 		success = false;
 	}
 
@@ -53,7 +53,7 @@ bool Game::init()
 	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
 	if (gRenderer == NULL)
 	{
-		printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+		std::cout << "Renderer could not be created! SDL Error: " << SDL_GetError() << std::endl;
 		success = false;
 	}
 
@@ -64,20 +64,20 @@ bool Game::init()
 	int imgFlags = IMG_INIT_PNG;
 	if (!(IMG_Init(imgFlags) & imgFlags))
 	{
-		printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
+		std::cout << "SDL_image could not initialize! SDL_image Error: " << IMG_GetError() << std::endl;
 		success = false;
 	}
 
 	//Initialize TTF loading
 	if (TTF_Init() == -1)
 	{
-		printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
+		std::cout << "SDL_ttf could not initialize! SDL_ttf Error: " << TTF_GetError() << std::endl;
 		success = false;
 	}
 
 	//Initialize BASS module
 	if (!BASS_Init(-1, 44100, BASS_DEVICE_STEREO, 0, NULL)) {
-		printf("BASS initialization failed.\n");
+		std::cout << "BASS initialization failed" << std::endl;
 	}
 
 	//Load Game States

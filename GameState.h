@@ -1,8 +1,7 @@
 #pragma once
 #include "enums.h"
 #include <SDL.h>
-#include <stdio.h>
-
+#include <iostream>
 
 class GameState
 {
@@ -12,7 +11,7 @@ public:
 	~GameState();
 	SDL_Texture *loadTexture(std::string path, SDL_Renderer *R);
 	SDL_Texture *loadFont(SDL_Renderer *R, std::string fontName, int fontSize, std::string textureText, SDL_Color textColor);
-	virtual Instruction process(SDL_Event e, Instruction nextInstruction) { printf("wrong"); return instruction; };
+	virtual Instruction process(SDL_Event e, Instruction nextInstruction) { std::cout << "wrong" << std::endl; return instruction; };
 	virtual void uninit() {};
 private:
 	Instruction instruction;
@@ -30,7 +29,7 @@ public:
 	virtual Instruction process(SDL_Event e, Instruction nextInstruction);
 private:
 	bool initted = false;
-	SDL_Texture *screen = NULL, *text = NULL;
+	SDL_Texture *screen = NULL;
 	long startTime;
 	SDL_Renderer *Renderer = NULL;
 	Instruction instruction;

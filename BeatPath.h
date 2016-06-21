@@ -7,7 +7,7 @@
 class BeatPath
 {
 public:
-	BeatPath(SDL_Renderer *r, float center, int screenWidth, float widthRatio, Uint8 path_highlight_alpha,float note_radius_ratio, StartEnd STARTEND,std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes);
+	BeatPath(SDL_Renderer *r, float center, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes);
 	BeatPath();
 	~BeatPath();
 	void renderPath(Uint32 currentTick, double songPosition, int timeBarY, double beatnote_buffer_time);
@@ -15,6 +15,7 @@ private:
 	SDL_Renderer *Renderer;
 	StartEnd startEnd;
 	float pathWidth, noteRadiusRatio;
+	double missNoteBufferTime;
 	//pathCenter is what will be used to keep track of what the path should be at when there are no motions going on
 	float pathCenter = 0;
 	int SCREEN_WIDTH;
