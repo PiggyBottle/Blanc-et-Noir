@@ -64,13 +64,24 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	currentTick = SDL_GetTicks();
 
 	if (!initted) { init(nextInstruction); }
+	double currentSongPosition = BASS_ChannelBytes2Seconds(bgm, (BASS_ChannelGetPosition(bgm, BASS_POS_BYTE)));
 
+	if ((e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) && (std::find(initVariables.keyBinds.begin(), initVariables.keyBinds.end(), e.key.keysym.sym) != initVariables.keyBinds.end())) 
+	{ 
+		enums::noteHit hit = beatMap.processInput(e,currentSongPosition); 
+		if (hit == enums::PERFECT) { std::cout << "Perfect!" << std::endl; }
+		else if (hit == enums::OKAY) { std::cout << "Okay" << std::endl; }
+		//else if (hit == enums::NO_HIT) { std::cout << "No Hit" << std::endl; }
+	}
 	//Blit Background image
 	SDL_SetTextureAlphaMod(bg, processBgAlpha());
 	SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
 	
 	//Blit map
-	beatMap.render(currentTick, BASS_ChannelBytes2Seconds(bgm,(BASS_ChannelGetPosition(bgm, BASS_POS_BYTE))), timeBarY);
+	if (beatMap.render(currentTick, currentSongPosition, timeBarY))
+	{
+		std::cout << "BREAK!" << std::endl;
+	}
 
 	//Blit UI
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);

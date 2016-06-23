@@ -3,7 +3,6 @@
 #include <vector>
 #include <bass.h>
 
-
 namespace enums 
 {
 	enum gameStates {
@@ -26,6 +25,13 @@ namespace enums
 
 	enum noteType {
 		SINGLE_HIT
+	};
+
+	enum noteHit {
+		NO_HIT,
+		PERFECT,
+		OKAY,
+		MISS
 	};
 }
 
@@ -50,7 +56,9 @@ struct InitVariables {
 	Uint8 path_highlight_alpha;
 	float note_radius_ratio;
 	double note_buffer_time;
-	double miss_note_buffer_time;
+	std::vector<int> keyBinds;
+	double okay_hit_buffer_time;
+	double perfect_hit_buffer_time;
 };
 
 struct RGB {
@@ -77,4 +85,11 @@ struct BeatNote {
 	double start_position;
 	double end_position;
 
+};
+
+//To be used exclusively by BeatMap to keep track of key presses
+struct KeyStatus {
+	int key;
+	bool already_pressed;
+	int linked_path;
 };

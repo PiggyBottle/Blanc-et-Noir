@@ -10,7 +10,7 @@ BeatPath::BeatPath(SDL_Renderer *r, float center, InitVariables var, StartEnd ST
 	this->pathWidth = var.path_width_ratio;
 	this->pathHighlightAlpha = var.path_highlight_alpha;
 	this->noteRadiusRatio = var.note_radius_ratio;
-	this->missNoteBufferTime = var.miss_note_buffer_time;
+	this->initVariables = var;
 	beatNotes = beat_notes;
 	
 	startEnd = STARTEND;
@@ -24,14 +24,15 @@ BeatPath::~BeatPath()
 {
 }
 
-void BeatPath::renderPath(Uint32 currentTick, double songPosition, int timeBarY, double beatnote_buffer_time)
+bool BeatPath::renderPath(Uint32 currentTick, double songPosition, int timeBarY, double beatnote_buffer_time)
 {
 	//currentCenterOfPath and currentPathWidth are already in pixels
 	computeCenterOfPath(songPosition);
 	computePathWidth(songPosition);
 
 	//The idea is to do all computing and calculation before rendering, and then break off if there's no need render.
-	if (!pathIsOn(songPosition)) { return; }
+	isOn = pathIsOn(songPosition);
+	if (!isOn) { return false; }
 
 	//Highlight path
 	drawPathHighlight(songPosition, timeBarY);
@@ -43,8 +44,47 @@ void BeatPath::renderPath(Uint32 currentTick, double songPosition, int timeBarY,
 	drawBorders(timeBarY);
 
 	//Draw beat notes
-	drawBeatNotes(songPosition, timeBarY, beatnote_buffer_time, currentCenterOfPath);
+	return drawBeatNotes(songPosition, timeBarY, beatnote_buffer_time, currentCenterOfPath);
 
+}
+
+std::vector<int> BeatPath::getCurrentPathWidthCoordinates()
+{
+	std::vector<int>start_end(2);
+	start_end[0] = currentCenterOfPath - currentPathWidth;
+	start_end[1] = currentCenterOfPath + currentPathWidth;
+
+	return start_end;
+}
+
+double BeatPath::getNextBeatTime()
+{
+	if (!beatNotes.empty()) {
+		return beatNotes[0].start_position;
+	}
+	else { return -1.0; }
+}
+
+enums::noteHit BeatPath::registerKey(int key, double songPosition)
+{
+	//Add key to registeredKeys
+	if (std::find(registeredKeys.begin(), registeredKeys.end(), key) != registeredKeys.end()) { registeredKeys.push_back(key); }
+
+	//Calculate hit accuracy.
+	//The fact that this function is called means there is a guaranteed hit
+	enums::noteHit hit = enums::NO_HIT;
+	double beatNoteTimeDelta = std::abs(beatNotes[0].start_position - songPosition);
+	if (beatNoteTimeDelta <= initVariables.perfect_hit_buffer_time)
+	{
+		hit = enums::PERFECT;
+	}
+	else if (beatNoteTimeDelta <= initVariables.okay_hit_buffer_time)
+	{
+		hit = enums::OKAY;
+	}
+	beatNotes.erase(beatNotes.begin());
+
+	return hit;
 }
 
 void BeatPath::drawBorders(int timeBarY)
@@ -58,18 +98,33 @@ void BeatPath::drawBorders(int timeBarY)
 
 }
 
-void BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path)
+bool BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path)
 {
+	bool thereIsABreak = false;
+	bool thereAreExpiredNotes = false;
+	if (!beatNotes.empty()) {
+		thereAreExpiredNotes = songPosition - beatNotes[0].end_position > initVariables.okay_hit_buffer_time;
+	}
+	//Delete expired notes and register a break
+	while (thereAreExpiredNotes)
+	{ 
+		beatNotes.erase(beatNotes.begin());
+		if (!beatNotes.empty())
+		{
+			thereAreExpiredNotes = songPosition - beatNotes[0].end_position > initVariables.okay_hit_buffer_time;
+		}
+		else { thereAreExpiredNotes = false; }
+		thereIsABreak = true;
+	}
+
 	for (std::vector<BeatNote>::iterator i = beatNotes.begin(); i != beatNotes.end(); ++i)
 	{
-		//Delete notes that have been hit
-
-		//Delete expired notes (and register a break)
 
 		//Draw active notes
 		if (i->start_position - songPosition > beatnote_buffer_time) { break; }
 		renderBeatNotes(songPosition, timeBarY, beatnote_buffer_time, center_of_path, i);
 	}
+	return thereIsABreak;
 }
 
 
