@@ -15,6 +15,8 @@ public:
 	std::vector<int> getCurrentPathWidthCoordinates();
 	double getNextBeatTime();
 	enums::noteHit registerKey(int key, double songPosition);
+	//Tells functions if a hold-note is being held
+	bool isHolding = false;
 private:
 	SDL_Renderer *Renderer;
 	StartEnd startEnd;

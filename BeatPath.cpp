@@ -70,9 +70,12 @@ enums::noteHit BeatPath::registerKey(int key, double songPosition)
 	//Add key to registeredKeys
 	if (std::find(registeredKeys.begin(), registeredKeys.end(), key) != registeredKeys.end()) { registeredKeys.push_back(key); }
 
+	enums::noteHit hit = enums::NO_HIT;
+	//If there is already a hold, then theres nothing else to be calculated.
+	if (isHolding) { return hit; }
+
 	//Calculate hit accuracy.
 	//The fact that this function is called means there is a guaranteed hit
-	enums::noteHit hit = enums::NO_HIT;
 	double beatNoteTimeDelta = std::abs(beatNotes[0].start_position - songPosition);
 	if (beatNoteTimeDelta <= initVariables.perfect_hit_buffer_time)
 	{
@@ -82,7 +85,8 @@ enums::noteHit BeatPath::registerKey(int key, double songPosition)
 	{
 		hit = enums::OKAY;
 	}
-	beatNotes.erase(beatNotes.begin());
+	if (beatNotes[0].note_type == enums::SINGLE_HIT){ beatNotes.erase(beatNotes.begin()); }
+	else if (beatNotes[0].note_type == enums::SINGLE_HOLD) { isHolding = true; }
 
 	return hit;
 }
@@ -103,18 +107,19 @@ bool BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_
 	bool thereIsABreak = false;
 	bool thereAreExpiredNotes = false;
 	if (!beatNotes.empty()) {
-		thereAreExpiredNotes = songPosition - beatNotes[0].start_position > initVariables.okay_hit_buffer_time;
+		thereAreExpiredNotes = (beatNotes[0].note_type == enums::SINGLE_HIT && songPosition - beatNotes[0].start_position > initVariables.okay_hit_buffer_time) || (beatNotes[0].note_type == enums::SINGLE_HOLD && (songPosition > beatNotes[0].end_position || (songPosition - beatNotes[0].start_position > initVariables.okay_hit_buffer_time && !isHolding)));
 	}
 	//Delete expired notes and register a break
 	while (thereAreExpiredNotes)
 	{ 
+		if (beatNotes[0].note_type == enums::SINGLE_HIT || (beatNotes[0].note_type == enums::SINGLE_HOLD && !isHolding)) { thereIsABreak = true; }
+		isHolding = false;
 		beatNotes.erase(beatNotes.begin());
 		if (!beatNotes.empty())
 		{
-			thereAreExpiredNotes = songPosition - beatNotes[0].start_position > initVariables.okay_hit_buffer_time;
+		thereAreExpiredNotes = (beatNotes[0].note_type == enums::SINGLE_HIT && songPosition - beatNotes[0].start_position > initVariables.okay_hit_buffer_time) || (beatNotes[0].note_type == enums::SINGLE_HOLD && (songPosition > beatNotes[0].end_position || (songPosition - beatNotes[0].start_position > initVariables.okay_hit_buffer_time && !isHolding)));
 		}
 		else { thereAreExpiredNotes = false; }
-		thereIsABreak = true;
 	}
 
 	for (std::vector<BeatNote>::iterator i = beatNotes.begin(); i != beatNotes.end(); ++i)

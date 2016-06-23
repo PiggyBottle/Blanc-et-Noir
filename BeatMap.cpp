@@ -152,7 +152,7 @@ int BeatMap::getLinkedPath(int start, int end, double songPosition)
 		if (beatPath[i].isOn && thereIsAnOverlap(start, end, beatPath[i].getCurrentPathWidthCoordinates()))
 		{
 			nextBeatTime = beatPath[i].getNextBeatTime();
-			if (nextBeatTime != -1 && nextBeatTime - songPosition < initVariables.okay_hit_buffer_time)
+			if (nextBeatTime != -1 && (nextBeatTime - songPosition < initVariables.okay_hit_buffer_time || beatPath[i].isHolding))
 			{ 
 				pathBeatPair.first_beat = nextBeatTime;
 				pathBeatPair.path = i;
