@@ -103,7 +103,7 @@ bool BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_
 	bool thereIsABreak = false;
 	bool thereAreExpiredNotes = false;
 	if (!beatNotes.empty()) {
-		thereAreExpiredNotes = songPosition - beatNotes[0].end_position > initVariables.okay_hit_buffer_time;
+		thereAreExpiredNotes = songPosition - beatNotes[0].start_position > initVariables.okay_hit_buffer_time;
 	}
 	//Delete expired notes and register a break
 	while (thereAreExpiredNotes)
@@ -111,7 +111,7 @@ bool BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_
 		beatNotes.erase(beatNotes.begin());
 		if (!beatNotes.empty())
 		{
-			thereAreExpiredNotes = songPosition - beatNotes[0].end_position > initVariables.okay_hit_buffer_time;
+			thereAreExpiredNotes = songPosition - beatNotes[0].start_position > initVariables.okay_hit_buffer_time;
 		}
 		else { thereAreExpiredNotes = false; }
 		thereIsABreak = true;
@@ -152,7 +152,23 @@ void BeatPath::renderBeatNotes(double songPosition, int timeBarY, double beatnot
 
 	//Render note
 	filledPolygonRGBA(Renderer,x,y,4,0,0,0,255);
+
+	//That's all that's needed for SINGLE_HITs.
+	if (beat_note->note_type == enums::SINGLE_HIT) { return; }
+
+	//Blitting for SINGLE_HOLDs.
+	double holdNoteToBufferRatio = (beat_note->end_position - songPosition) / (beatnote_buffer_time);
+	if (holdNoteToBufferRatio > 1) { holdNoteToBufferRatio = 1; }
+	if (holdNoteToBufferRatio < 0) { holdNoteToBufferRatio = 0; }
+	int holdNoteCenterY = (int) (((double)(timeBarY)) * (((double)1) - holdNoteToBufferRatio));
+	SDL_Rect holdRect = { center_of_path - ((int)(noteRadiusRatio * ((float)SCREEN_WIDTH))), holdNoteCenterY, (int)(2.f * ((float)SCREEN_WIDTH) * noteRadiusRatio), ((int)noteCenterY) - holdNoteCenterY };
+	SDL_RenderFillRect(Renderer, &holdRect);
+
+
 	
+
+
+
 }
 
 void BeatPath::drawPathHighlight(double songPosition, int timeBarY)

@@ -24,7 +24,8 @@ namespace enums
 	};
 
 	enum noteType {
-		SINGLE_HIT
+		SINGLE_HIT,
+		SINGLE_HOLD
 	};
 
 	enum noteHit {
