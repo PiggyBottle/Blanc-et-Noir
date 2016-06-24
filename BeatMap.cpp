@@ -29,13 +29,13 @@ std::vector<BeatPath> BeatMap::getBeatPath()
 	startEnd.start = { 3.0 };
 	startEnd.end = { 15.0 };
 	std::vector<PathMotion> pathMotion,widthMotion;
-	PathMotion pM = { enums::LINEAR_SLIDE, 5.00, 5.50, 0.6f,0.8f};
+	PathMotion pM = { enums::LINEAR_SLIDE, 5.00, 8.50, 0.6f,0.8f};
 	pathMotion.push_back(pM);
 	PathMotion wM = { enums::LINEAR_SLIDE, 6.50, 7, 0.3f,(1.0f / 15.0f) };
 	widthMotion.push_back(wM);
 	std::vector<BeatPath> buffer;
 	std::vector<BeatNote> beatNotes;
-	BeatNote bn= { enums::SINGLE_HOLD, 10.5,11.5 };
+	BeatNote bn= { enums::SINGLE_HOLD, 4.0,14.5 };
 	for (int i = 0; i < 1; i++)
 	{
 		bn.start_position += 0.1;
@@ -86,14 +86,11 @@ bool BeatMap::thereIsAnOverlap(int start, int end, std::vector<int> pathCoordina
 	return (start < pathCoordinates[1] && end > pathCoordinates[0]);
 }
 
-bool BeatMap::render(Uint32 currentTick, double currentMusicPosition, int timeBarY)
+void BeatMap::render(Uint32 currentTick, double currentMusicPosition, int timeBarY)
 {
-	bool thereIsABreak = false;
 	for (std::vector<BeatPath>::iterator i = beatPath.begin(); i != beatPath.end(); ++i)
 	{
-		if (i->renderPath(currentTick, currentMusicPosition, timeBarY, beatNoteBufferTime)) {
-			thereIsABreak = true;
-		}
+		i->renderPath( currentMusicPosition, timeBarY, beatNoteBufferTime);
 	}
 
 	SDL_Rect a = { 0,timeBarY,keySeparationThickness,SCREEN_HEIGHT - timeBarY };
@@ -103,7 +100,26 @@ bool BeatMap::render(Uint32 currentTick, double currentMusicPosition, int timeBa
 		a.x = keyCoordinates[i] - ((int)(0.5f * ((float)keySeparationThickness)));
 		SDL_RenderFillRect(Renderer, &a);
 	}
-	return thereIsABreak;
+}
+
+std::vector<enums::noteHit> BeatMap::computeVariables(double songPosition)
+{
+	std::vector<enums::noteHit> hits;
+	for (size_t i = 0, ilen = keyStatuses.size(); i < ilen; ++i)
+	{
+		if (keyStatuses[i].linked_path == -1) { continue; }
+		if (!thereIsAnOverlap(keyCoordinates[i], keyCoordinates[i + 1], beatPath[keyStatuses[i].linked_path].getCurrentPathWidthCoordinates()))
+		{
+			hits.push_back(beatPath[keyStatuses[i].linked_path].deregisterKey((int)i,songPosition));
+			keyStatuses[i].linked_path = -1;
+		}
+	}
+
+	for (std::vector<BeatPath>::iterator i = beatPath.begin(); i != beatPath.end(); ++i)
+	{
+		hits.push_back(i->computeVariables(songPosition));
+	}
+	return hits;
 }
 
 enums::noteHit BeatMap::processInput(SDL_Event e, double songPosition)
@@ -124,7 +140,7 @@ enums::noteHit BeatMap::processInput(SDL_Event e, double songPosition)
 		if (keyStatuses[key].linked_path != -1)
 		{
 		//Release linked path here
-		//_________________
+		hit = beatPath[keyStatuses[key].linked_path].deregisterKey(key, songPosition);
 		keyStatuses[key].linked_path = -1;
 		}
 	}

@@ -71,17 +71,24 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 		enums::noteHit hit = beatMap.processInput(e,currentSongPosition); 
 		if (hit == enums::PERFECT) { std::cout << "Perfect!" << std::endl; }
 		else if (hit == enums::OKAY) { std::cout << "Okay" << std::endl; }
+		else if (hit == enums::MISS) { std::cout << "BREAK" << std::endl; }
 		//else if (hit == enums::NO_HIT) { std::cout << "No Hit" << std::endl; }
 	}
 	//Blit Background image
 	SDL_SetTextureAlphaMod(bg, processBgAlpha());
 	SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
 	
-	//Blit map
-	if (beatMap.render(currentTick, currentSongPosition, timeBarY))
+	//Compute beatMap variables
+	std::vector<enums::noteHit> hits = beatMap.computeVariables(currentSongPosition);
+	for (auto i = hits.begin(); i!=hits.end(); ++i)
 	{
-		std::cout << "BREAK!" << std::endl;
-	}
+		switch (*i) {
+		case enums::PERFECT: std::cout << "PERFECT" << std::endl; break;
+		case enums::MISS: std::cout << "BREAK" << std::endl; break;
+	} }
+
+	//Blit map
+	beatMap.render(currentTick, currentSongPosition, timeBarY);
 
 	//Blit UI
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);

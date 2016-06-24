@@ -1,5 +1,6 @@
 #include "BeatPath.h"
 #include <SDL2_gfxPrimitives.h>
+#include <algorithm>
 
 BeatPath::BeatPath() {}
 BeatPath::BeatPath(SDL_Renderer *r, float center, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes)
@@ -24,18 +25,20 @@ BeatPath::~BeatPath()
 {
 }
 
-bool BeatPath::renderPath(Uint32 currentTick, double songPosition, int timeBarY, double beatnote_buffer_time)
+enums::noteHit BeatPath::computeVariables(double songPosition)
 {
-	//currentCenterOfPath and currentPathWidth are already in pixels
 	computeCenterOfPath(songPosition);
 	computePathWidth(songPosition);
-
-	//The idea is to do all computing and calculation before rendering, and then break off if there's no need render.
 	isOn = pathIsOn(songPosition);
-	if (!isOn) { return false; }
+	return computeBeatNotes(songPosition);
+}
+
+void BeatPath::renderPath(double songPosition, int timeBarY, double beatnote_buffer_time)
+{
+	if (!isOn) { return; }
 
 	//Highlight path
-	drawPathHighlight(songPosition, timeBarY);
+	drawPathHighlight(timeBarY);
 
 	//Draw Path Center
 	drawPathCenter(currentCenterOfPath, timeBarY);
@@ -44,7 +47,7 @@ bool BeatPath::renderPath(Uint32 currentTick, double songPosition, int timeBarY,
 	drawBorders(timeBarY);
 
 	//Draw beat notes
-	return drawBeatNotes(songPosition, timeBarY, beatnote_buffer_time, currentCenterOfPath);
+	drawBeatNotes(songPosition, timeBarY, beatnote_buffer_time, currentCenterOfPath);
 
 }
 
@@ -68,7 +71,7 @@ double BeatPath::getNextBeatTime()
 enums::noteHit BeatPath::registerKey(int key, double songPosition)
 {
 	//Add key to registeredKeys
-	if (std::find(registeredKeys.begin(), registeredKeys.end(), key) != registeredKeys.end()) { registeredKeys.push_back(key); }
+	if (std::find(registeredKeys.begin(), registeredKeys.end(), key) == registeredKeys.end()) { registeredKeys.push_back(key); }
 
 	enums::noteHit hit = enums::NO_HIT;
 	//If there is already a hold, then theres nothing else to be calculated.
@@ -91,6 +94,32 @@ enums::noteHit BeatPath::registerKey(int key, double songPosition)
 	return hit;
 }
 
+enums::noteHit BeatPath::deregisterKey(int key, double songPosition)
+{
+	//Might need to check if this works 100%
+	if (std::find(registeredKeys.begin(), registeredKeys.end(), key) != registeredKeys.end()) 
+	{ 
+		registeredKeys.erase(std::remove(registeredKeys.begin(), registeredKeys.end(), key), registeredKeys.end());
+	}
+	
+	enums::noteHit hit = enums::NO_HIT;
+	if ((!isHolding) || (!registeredKeys.empty())) { return hit; }
+
+	if (beatNotes[0].end_position - songPosition > initVariables.okay_hit_buffer_time)
+	{
+		hit = enums::MISS;
+	}
+	else if (beatNotes[0].end_position - songPosition > initVariables.perfect_hit_buffer_time)
+	{
+		hit = enums::OKAY;
+	}
+	else { hit = enums::PERFECT; }
+
+	beatNotes.erase(beatNotes.begin());
+	return hit;
+
+}
+
 void BeatPath::drawBorders(int timeBarY)
 {
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
@@ -102,9 +131,9 @@ void BeatPath::drawBorders(int timeBarY)
 
 }
 
-bool BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path)
+enums::noteHit BeatPath::computeBeatNotes(double songPosition)
 {
-	bool thereIsABreak = false;
+	enums::noteHit hit = enums::NO_HIT;
 	bool thereAreExpiredNotes = false;
 	if (!beatNotes.empty()) {
 		thereAreExpiredNotes = (beatNotes[0].note_type == enums::SINGLE_HIT && songPosition - beatNotes[0].start_position > initVariables.okay_hit_buffer_time) || (beatNotes[0].note_type == enums::SINGLE_HOLD && (songPosition > beatNotes[0].end_position || (songPosition - beatNotes[0].start_position > initVariables.okay_hit_buffer_time && !isHolding)));
@@ -112,7 +141,8 @@ bool BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_
 	//Delete expired notes and register a break
 	while (thereAreExpiredNotes)
 	{ 
-		if (beatNotes[0].note_type == enums::SINGLE_HIT || (beatNotes[0].note_type == enums::SINGLE_HOLD && !isHolding)) { thereIsABreak = true; }
+		if (beatNotes[0].note_type == enums::SINGLE_HIT || (beatNotes[0].note_type == enums::SINGLE_HOLD && !isHolding)) { hit = enums::MISS; }
+		else if (beatNotes[0].note_type == enums::SINGLE_HOLD && songPosition > beatNotes[0].end_position  && isHolding) { hit = enums::PERFECT; }
 		isHolding = false;
 		beatNotes.erase(beatNotes.begin());
 		if (!beatNotes.empty())
@@ -121,6 +151,11 @@ bool BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_
 		}
 		else { thereAreExpiredNotes = false; }
 	}
+	return hit;
+}
+
+void BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path)
+{
 
 	for (std::vector<BeatNote>::iterator i = beatNotes.begin(); i != beatNotes.end(); ++i)
 	{
@@ -129,7 +164,6 @@ bool BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_
 		if (i->start_position - songPosition > beatnote_buffer_time) { break; }
 		renderBeatNotes(songPosition, timeBarY, beatnote_buffer_time, center_of_path, i);
 	}
-	return thereIsABreak;
 }
 
 
@@ -176,7 +210,7 @@ void BeatPath::renderBeatNotes(double songPosition, int timeBarY, double beatnot
 
 }
 
-void BeatPath::drawPathHighlight(double songPosition, int timeBarY)
+void BeatPath::drawPathHighlight(int timeBarY)
 {
 	SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
 	SDL_Rect highlight = { 0,0,0,timeBarY };

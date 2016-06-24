@@ -10,11 +10,11 @@ public:
 	BeatPath(SDL_Renderer *r, float center, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes);
 	BeatPath();
 	~BeatPath();
-	bool renderPath(Uint32 currentTick, double songPosition, int timeBarY, double beatnote_buffer_time);
+	void renderPath(double songPosition, int timeBarY, double beatnote_buffer_time);
 	bool isOn = false;
 	std::vector<int> getCurrentPathWidthCoordinates();
 	double getNextBeatTime();
-	enums::noteHit registerKey(int key, double songPosition);
+	enums::noteHit registerKey(int key, double songPosition), deregisterKey(int key, double songPosition), computeVariables(double songPosition);
 	//Tells functions if a hold-note is being held
 	bool isHolding = false;
 private:
@@ -36,11 +36,12 @@ private:
 	std::vector<BeatNote> beatNotes;
 	std::vector<int> registeredKeys;
 	void drawPathCenter(int centerOfPath, int timeBarY);
-	bool drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path);
-	void drawPathHighlight(double songPosition, int timeBarY);
+	void drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path);
+	void drawPathHighlight(int timeBarY);
 	void drawBorders(int timeBarY);
 	void renderBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time,int center_of_path, std::vector<BeatNote>::iterator beat_note);
 	InitVariables initVariables;
+	enums::noteHit computeBeatNotes(double songPosition);
 	
 
 
