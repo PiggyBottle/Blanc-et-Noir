@@ -26,16 +26,16 @@ BeatMap::~BeatMap()
 std::vector<BeatPath> BeatMap::getBeatPath()
 {
 	StartEnd startEnd;
-	startEnd.start = { 3.0 };
+	startEnd.start = { 6.0 };
 	startEnd.end = { 15.0 };
 	std::vector<PathMotion> pathMotion,widthMotion;
-	PathMotion pM = { enums::LINEAR_SLIDE, 5.00, 8.50, 0.6f,0.8f};
+	PathMotion pM = { enums::LINEAR_SLIDE, 7.00, 8.50, 0.6f,0.8f};
 	pathMotion.push_back(pM);
 	PathMotion wM = { enums::LINEAR_SLIDE, 6.50, 7, 0.3f,(1.0f / 15.0f) };
 	widthMotion.push_back(wM);
 	std::vector<BeatPath> buffer;
 	std::vector<BeatNote> beatNotes;
-	BeatNote bn= { enums::SINGLE_HOLD, 4.0,14.5 };
+	BeatNote bn= { enums::SINGLE_HOLD, 7.0,14.5 };
 	for (int i = 0; i < 1; i++)
 	{
 		bn.start_position += 0.1;

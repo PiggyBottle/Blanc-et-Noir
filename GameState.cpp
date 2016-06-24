@@ -115,7 +115,7 @@ Instruction StartingScreen::process(SDL_Event e, Instruction nextInstruction)
 		if (!(currentTick - startTime < fadeDelay))
 		{
 			uninit();
-			instruction.nextState = enums::MAIN_MENU;
+			instruction.nextState = enums::MUSIC_SELECTION;
 		}
 		else
 		{
@@ -125,50 +125,3 @@ Instruction StartingScreen::process(SDL_Event e, Instruction nextInstruction)
 	return instruction;
 }
 
-MainMenu::MainMenu(SDL_Renderer *gRenderer)
-{
-	this->Renderer = gRenderer;
-}
-
-MainMenu::~MainMenu() 
-{
-}
-
-void MainMenu::init()
-{
-	//Load texture
-	screen = loadTexture("startingmenuscreen.jpg", Renderer);
-	initted = true;
-}
-
-void MainMenu::uninit()
-{
-	if (initted)
-	{
-		SDL_DestroyTexture(screen);
-		initted = false;
-	}
-}
-
-Instruction MainMenu::process(SDL_Event e, Instruction nextInstruction)
-{
-	if (!initted)
-	{
-		init();
-		std::cout << "In main menu" << std::endl;
-	}
-	SDL_RenderCopyEx(Renderer, screen, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
-	instruction.quit = false;
-	if (e.type == SDL_KEYDOWN)
-	{
-		instruction.songToLoad = enums::UNRAVEL;
-		instruction.nextState = enums::MAIN_GAME;
-		instruction.gameKeys = 6;
-		uninit();
-	}
-	else
-	{
-		instruction.nextState = enums::MAIN_MENU;
-	}
-	return instruction;
-}

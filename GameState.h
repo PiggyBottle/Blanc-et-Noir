@@ -36,20 +36,4 @@ private:
 	int fadeDelay;
 };
 
-class MainMenu : public GameState
-{
-public:
-	MainMenu(SDL_Renderer *gRenderer);
-	~MainMenu();
-	void init();
-	void uninit();
-	Instruction process(SDL_Event e, Instruction nextInstruction);
-private:
-	Instruction instruction;
-	bool initted = false;
-	SDL_Renderer *Renderer = NULL;
-
-	//Temporary texture
-	SDL_Texture *screen = NULL;
-};
 

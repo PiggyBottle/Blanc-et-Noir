@@ -7,16 +7,9 @@ namespace enums
 {
 	enum gameStates {
 		STARTING_SCREEN,
-		MAIN_MENU,
+		MUSIC_SELECTION,
 		MAIN_GAME,
 		TOTAL_STATES
-	};
-
-	enum songs {
-		UNRAVEL,
-		FOR_SEASONS,
-		TOTAL_SONGS,
-		NO_SONGS
 	};
 
 	enum motions {
@@ -39,8 +32,9 @@ namespace enums
 struct Instruction {
 	int nextState;
 	bool quit = false;
-	enums::songs songToLoad = enums::NO_SONGS;
+	std::string songToLoad;
 	int gameKeys = 4;
+	std::string songDifficulty;
 };
 
 struct InitVariables {

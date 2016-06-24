@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "MusicSelection.h"
 #include "MainGame.h"
 #include <iostream>
 #include <SDL_image.h>
@@ -82,7 +83,7 @@ bool Game::init()
 
 	//Load Game States
 	states[enums::STARTING_SCREEN] = new StartingScreen(gRenderer, initVariables.startup_screen_delay);
-	states[enums::MAIN_MENU] = new MainMenu(gRenderer);
+	states[enums::MUSIC_SELECTION] = new MusicSelection(gRenderer);
 	states[enums::MAIN_GAME] = new MainGame(gRenderer, initVariables);
 
 

@@ -3,6 +3,7 @@
 #include <bass.h>
 #include <bassflac.h>
 #include <cmath>
+#include <string>
 
 
 
@@ -40,12 +41,10 @@ void MainGame::init(Instruction nextInstruction)
 	
 
 	//Load music/SFX
-
-	const char *listOfSongs[enums::TOTAL_SONGS] = { "Unravel.flac", "ForSeasons.flac" };
+	std::string songToLoad = "Music/" + nextInstruction.songToLoad + '/' + nextInstruction.songToLoad + ".flac";
 	//Last argument in this function should be replaced with "BASS_SAMPLE_LOOP" flag if you want to repeat
-	bgm = BASS_FLAC_StreamCreateFile(false, listOfSongs[nextInstruction.songToLoad], 0, 0, 0);
+	bgm = BASS_FLAC_StreamCreateFile(false, songToLoad.c_str(), 0, 0, 0);
 	//BASS_ChannelSetPosition(bgm, 1000000, BASS_POS_BYTE);
-	BASS_ChannelPlay(bgm, false);
 
 	initted = true;
 }
@@ -68,6 +67,7 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 
 	if ((e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) && (std::find(initVariables.keyBinds.begin(), initVariables.keyBinds.end(), e.key.keysym.sym) != initVariables.keyBinds.end())) 
 	{ 
+		std::cout << currentSongPosition << std::endl;
 		enums::noteHit hit = beatMap.processInput(e,currentSongPosition); 
 		if (hit == enums::PERFECT) { std::cout << "Perfect!" << std::endl; }
 		else if (hit == enums::OKAY) { std::cout << "Okay" << std::endl; }
@@ -119,6 +119,7 @@ int MainGame::processTimeBarY()
 	else
 	{
 		uiHasFinishedTransitioning = true;
+		BASS_ChannelPlay(bgm, false);
 		return 5 * (SCREEN_HEIGHT / 6);
 	}
 }
