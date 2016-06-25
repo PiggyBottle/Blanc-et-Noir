@@ -1,7 +1,6 @@
 #include "BeatMap.h"
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
-#include <iostream>
 #include <fstream>
 #include <sstream>
 
@@ -42,7 +41,7 @@ std::vector<BeatPath> BeatMap::getBeatPath()
 	std::vector<BeatPath> beatPath;
 	for (std::vector<std::string>::iterator i = pathDirectories.begin(); i != pathDirectories.end(); ++i)
 	{
-		float startPosition;
+		float startPosition, startWidth;
 		RGB startColor;
 		StartEnd startEnd;
 		std::vector<PathMotion> pathMotion,widthMotion;
@@ -56,6 +55,11 @@ std::vector<BeatPath> BeatMap::getBeatPath()
 			{
 				std::string line2; std::getline(file, line2);
 				startPosition = parseStringToFraction(line2);
+			}
+			else if (line == "#startwidth")
+			{
+				std::string line2; std::getline(file, line2);
+				startWidth = parseStringToFraction(line2);
 			}
 			if (line == "#startcolor")
 			{
@@ -89,7 +93,7 @@ std::vector<BeatPath> BeatMap::getBeatPath()
 				beatNotes = parseStringVectorToBeatNoteVector(parseStringToVectorOfTrimmedStrings(line2));
 			}
 		}
-		beatPath.push_back(BeatPath(Renderer, startPosition, startColor, initVariables, startEnd, pathMotion, widthMotion, beatNotes));
+		beatPath.push_back(BeatPath(Renderer, startPosition, startWidth, startColor, initVariables, startEnd, pathMotion, widthMotion, beatNotes));
 	}
 	return beatPath;
 }
@@ -142,7 +146,6 @@ std::vector<std::string> BeatMap::parseStringToVectorOfTrimmedStrings(std::strin
 	for (std::vector<std::string>::iterator i = strings.begin(); i != strings.end(); ++i)
 	{
 		boost::algorithm::trim_if(*i, boost::is_any_of("() "));
-		std::cout << *i << std::endl;
 	}
 	return strings;
 }
@@ -160,6 +163,7 @@ std::vector<PathMotion> BeatMap::parseStringVectorToPathMotionVector(std::vector
 		pM.end_position = std::stod(lines[2]);
 		pM.start_x = parseStringToFraction(lines[3]);
 		pM.end_x = parseStringToFraction(lines[4]);
+		if (pM.motion == enums::HALF_SINE_SLIDE || pM.motion == enums::FULL_SINE_SLIDE) { pM.amplitude = parseStringToFraction(lines[5]); }
 		//Add more functions here for future motions that involve special parameters
 		pathMotion.push_back(pM);
 	}

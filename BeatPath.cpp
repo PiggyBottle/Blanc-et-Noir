@@ -1,15 +1,16 @@
 #include "BeatPath.h"
 #include <SDL2_gfxPrimitives.h>
 #include <algorithm>
+#include <cmath>
 
 BeatPath::BeatPath() {}
-BeatPath::BeatPath(SDL_Renderer *r, float center, RGB color, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes)
+BeatPath::BeatPath(SDL_Renderer *r, float center, float width, RGB color, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes)
 {
 	this->Renderer = r;
 	this->pathCenter = center;
 	this->pathColor = color;
 	this->SCREEN_WIDTH = var.screen_width;
-	this->pathWidth = var.path_width_ratio;
+	this->pathWidth = width;
 	this->pathHighlightAlpha = var.path_highlight_alpha;
 	this->noteRadiusRatio = var.note_radius_ratio;
 	this->initVariables = var;
@@ -275,6 +276,16 @@ float BeatPath::processPathMotionX(PathMotion pathMotion, double currentPosition
 	{
 		*endpoint = pathMotion.end_x;
 		return (((float)pathMotion.start_x) + (((float)(pathMotion.end_x - pathMotion.start_x)) * (((float)(currentPosition - pathMotion.start_position))/((float)(pathMotion.end_position - pathMotion.start_position)))));
+	}
+	else if (pathMotion.motion == enums::HALF_SINE_SLIDE)
+	{
+		*endpoint = pathMotion.end_x;
+		return (float)(pathMotion.start_x + (std::sin(((currentPosition - pathMotion.start_position) / (pathMotion.end_position - pathMotion.start_position)) * 1.5708) * (pathMotion.amplitude - pathMotion.start_x)));
+	}
+	else if (pathMotion.motion == enums::FULL_SINE_SLIDE)
+	{
+		*endpoint = pathMotion.end_x;
+		return (float)(pathMotion.start_x + (std::sin(((currentPosition - pathMotion.start_position) / (pathMotion.end_position - pathMotion.start_position)) * 3.141) * (pathMotion.amplitude - pathMotion.start_x)));
 	}
 	return 0;
 }

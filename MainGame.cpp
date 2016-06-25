@@ -19,7 +19,6 @@ MainGame::MainGame(SDL_Renderer *gRenderer, InitVariables var)
 	this->bgAlpha = var.mainGame_bg_alpha;
 	this->uiTransitionTime = var.mainGame_ui_transition_time;
 	this->timeBar = { 0,5 * (SCREEN_HEIGHT / 6),SCREEN_WIDTH,var.timeBar_thickness };
-	this->pathWidthRatio = var.path_width_ratio;
 	this->initVariables = var;
 }
 
@@ -41,10 +40,11 @@ void MainGame::init(Instruction nextInstruction)
 	
 
 	//Load music/SFX
-	std::string songToLoad = "Music/" + nextInstruction.songToLoad + '/' + nextInstruction.songToLoad + ".flac";
+	std::string songToLoad = "Music/" + nextInstruction.songToLoad + '/' + nextInstruction.songToLoad + ".mp3";
 	//Last argument in this function should be replaced with "BASS_SAMPLE_LOOP" flag if you want to repeat
-	bgm = BASS_FLAC_StreamCreateFile(false, songToLoad.c_str(), 0, 0, 0);
+	bgm = BASS_StreamCreateFile(false, songToLoad.c_str(), 0, 0, 0);
 	//BASS_ChannelSetPosition(bgm, 1000000, BASS_POS_BYTE);
+	sfx = BASS_StreamCreateFile(false, "brightest-hat.aif", 0, 0, 0);
 
 	initted = true;
 }
@@ -67,10 +67,10 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 
 	if ((e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) && (std::find(initVariables.keyBinds.begin(), initVariables.keyBinds.end(), e.key.keysym.sym) != initVariables.keyBinds.end())) 
 	{ 
-		std::cout << currentSongPosition << std::endl;
 		enums::noteHit hit = beatMap.processInput(e,currentSongPosition); 
-		if (hit == enums::PERFECT) { std::cout << "Perfect!" << std::endl; }
-		else if (hit == enums::OKAY) { std::cout << "Okay" << std::endl; }
+		if (hit == enums::PERFECT) { std::cout << "Perfect!" << std::endl; BASS_ChannelSetPosition(sfx, 0, BASS_POS_BYTE); BASS_ChannelPlay(sfx, false); }
+	
+		else if (hit == enums::OKAY) { std::cout << "Okay" << std::endl;BASS_ChannelSetPosition(sfx, 0, BASS_POS_BYTE); BASS_ChannelPlay(sfx, false); }
 		else if (hit == enums::MISS) { std::cout << "BREAK" << std::endl; }
 		//else if (hit == enums::NO_HIT) { std::cout << "No Hit" << std::endl; }
 	}
@@ -83,7 +83,7 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	for (auto i = hits.begin(); i!=hits.end(); ++i)
 	{
 		switch (*i) {
-		case enums::PERFECT: std::cout << "PERFECT" << std::endl; break;
+		case enums::PERFECT: std::cout << "PERFECT" << std::endl;BASS_ChannelSetPosition(sfx, 0, BASS_POS_BYTE); BASS_ChannelPlay(sfx, false); break;
 		case enums::MISS: std::cout << "BREAK" << std::endl; break;
 	} }
 

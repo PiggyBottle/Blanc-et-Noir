@@ -13,7 +13,9 @@ namespace enums
 	};
 
 	enum motions {
-		LINEAR_SLIDE
+		LINEAR_SLIDE,
+		HALF_SINE_SLIDE,
+		FULL_SINE_SLIDE
 	};
 
 	enum noteType {
@@ -47,7 +49,6 @@ struct InitVariables {
 	int mainGame_ui_transition_time;
 	int timeBar_thickness;
 	int keySeparation_thickness;
-	float path_width_ratio;
 	Uint8 path_highlight_alpha;
 	float note_radius_ratio;
 	double note_buffer_time;
@@ -73,6 +74,7 @@ struct PathMotion {
 	double end_position;
 	float start_x;
 	float end_x;
+	float amplitude;
 	//Don't forget to update parsing function in BeatMap.cpp when you add more variables here!
 };
 

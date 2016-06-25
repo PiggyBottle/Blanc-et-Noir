@@ -20,7 +20,6 @@ int main(int argc, char* args[]) {
 	var.mainGame_ui_transition_time = 500;
 	var.timeBar_thickness = 8;
 	var.keySeparation_thickness = 4;
-	var.path_width_ratio = (float)(1.0 / 15.0);
 	var.path_highlight_alpha = (Uint8)155;
 	var.note_radius_ratio = (float)(1.0 / 60.0);
 	//Only notes within this buffer time will be blitted
