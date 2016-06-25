@@ -7,7 +7,7 @@
 class BeatPath
 {
 public:
-	BeatPath(SDL_Renderer *r, float center, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes);
+	BeatPath(SDL_Renderer *r, float center, RGB color, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes);
 	BeatPath();
 	~BeatPath();
 	void renderPath(double songPosition, int timeBarY, double beatnote_buffer_time);

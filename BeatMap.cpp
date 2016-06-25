@@ -1,17 +1,21 @@
 #include "BeatMap.h"
+#include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
-
-BeatMap::BeatMap(SDL_Renderer *r, InitVariables var, int number_of_keys)
+BeatMap::BeatMap(SDL_Renderer *r, InitVariables var, Instruction nextInstruction)
 {
 	this->Renderer = r;
 	this->initVariables = var;
+	this->instruction = nextInstruction;
 	this->SCREEN_HEIGHT = var.screen_height;
 	this->SCREEN_WIDTH = var.screen_width;
 	this->beatNoteBufferTime = var.note_buffer_time;
 	this->keySeparationThickness = var.keySeparation_thickness;
 
-	this->numberOfKeys = number_of_keys;
+	this->numberOfKeys = nextInstruction.gameKeys;
 	generateKeyCoordinates();
 	generateKeyStatuses(var.keyBinds);
 
@@ -25,30 +29,160 @@ BeatMap::~BeatMap()
 
 std::vector<BeatPath> BeatMap::getBeatPath()
 {
-	StartEnd startEnd;
-	startEnd.start = { 6.0 };
-	startEnd.end = { 15.0 };
-	std::vector<PathMotion> pathMotion,widthMotion;
-	PathMotion pM = { enums::LINEAR_SLIDE, 7.00, 8.50, 0.6f,0.8f};
-	pathMotion.push_back(pM);
-	PathMotion wM = { enums::LINEAR_SLIDE, 6.50, 7, 0.3f,(1.0f / 15.0f) };
-	widthMotion.push_back(wM);
-	std::vector<BeatPath> buffer;
-	std::vector<BeatNote> beatNotes;
-	BeatNote bn= { enums::SINGLE_HOLD, 7.0,14.5 };
-	for (int i = 0; i < 1; i++)
+	boost::filesystem::path p("Music\\" + instruction.songToLoad + "\\" + std::to_string(instruction.gameKeys) + "key\\" + instruction.songDifficulty);
+	boost::filesystem::directory_iterator end_itr;
+	std::vector<std::string> pathDirectories;
+	for (boost::filesystem::directory_iterator itr(p); itr != end_itr; ++itr)
 	{
-		bn.start_position += 0.1;
-		bn.end_position += 0.1;
-		beatNotes.push_back(bn);
+		if (boost::filesystem::is_regular_file(itr->path()) && itr->path().extension().string() == ".txt")
+		{
+			pathDirectories.push_back(itr->path().string());
+		}
 	}
-	buffer.push_back(BeatPath(Renderer, 0.6f,initVariables,startEnd,pathMotion,widthMotion, beatNotes));
-	pM.start_x = 0.4f; pM.end_x = 0.2f;
-	pathMotion[0] = pM;
-	buffer.push_back(BeatPath(Renderer, 0.4f,initVariables,startEnd, pathMotion, widthMotion, beatNotes));
-	
+	std::vector<BeatPath> beatPath;
+	for (std::vector<std::string>::iterator i = pathDirectories.begin(); i != pathDirectories.end(); ++i)
+	{
+		float startPosition;
+		RGB startColor;
+		StartEnd startEnd;
+		std::vector<PathMotion> pathMotion,widthMotion;
+		std::vector<BeatNote> beatNotes;
 
-	return buffer;
+		std::ifstream file(*i);
+		std::string line;
+		while (std::getline(file, line))
+		{
+			if (line == "#startposition")
+			{
+				std::string line2; std::getline(file, line2);
+				startPosition = parseStringToFraction(line2);
+			}
+			if (line == "#startcolor")
+			{
+				std::string line2; std::getline(file, line2);
+				boost::algorithm::trim_if(line2, boost::is_any_of("() "));
+				std::vector<std::string> lines;
+				boost::split(lines, line2, boost::is_any_of("|"));
+				startColor.r = std::stoi(lines[0]);
+				startColor.g = std::stoi(lines[1]);
+				startColor.b = std::stoi(lines[2]);
+			}
+			else if (line == "#startend")
+			{
+				std::string line2, line3; std::getline(file, line2); std::getline(file, line3);
+				startEnd.start = parseStringToVectorOfDoubles(line2);
+				startEnd.end = parseStringToVectorOfDoubles(line3);
+			}
+			else if (line == "#pathmotion")
+			{
+				std::string line2; std::getline(file, line2);
+				pathMotion = parseStringVectorToPathMotionVector(parseStringToVectorOfTrimmedStrings(line2));
+			}
+			else if (line == "#widthmotion")
+			{
+				std::string line2; std::getline(file, line2);
+				widthMotion = parseStringVectorToPathMotionVector(parseStringToVectorOfTrimmedStrings(line2));
+			}
+			else if (line == "#beatnote")
+			{
+				std::string line2; std::getline(file, line2);
+				beatNotes = parseStringVectorToBeatNoteVector(parseStringToVectorOfTrimmedStrings(line2));
+			}
+		}
+		beatPath.push_back(BeatPath(Renderer, startPosition, startColor, initVariables, startEnd, pathMotion, widthMotion, beatNotes));
+	}
+	return beatPath;
+}
+
+float BeatMap::parseStringToFraction(std::string line)
+{
+	std::vector<std::string> lines;
+	std::vector<float> floats;
+	float number;
+	boost::replace_all(line, " ", "");
+	boost::split(lines, line, boost::is_any_of("/"));
+	for (std::vector<std::string>::iterator i = lines.begin(); i != lines.end(); ++i)
+	{
+		std::stringstream stream(*i);
+		stream >> number;
+		floats.push_back(number);
+	}
+	switch (floats.size())
+	{
+	case 2:
+		number = ((float)floats[0]) / ((float)floats[1]); break;
+	case 1:
+		number = floats[0]; break;
+	default:
+		number = -1.f;
+	}
+	return number;
+}
+
+std::vector<double> BeatMap::parseStringToVectorOfDoubles(std::string line)
+{
+	std::vector<std::string> lines;
+	std::vector<double> doubles;
+	double number;
+	boost::split(lines, line, boost::is_any_of(","));
+	for (std::vector<std::string>::iterator i = lines.begin(); i != lines.end(); ++i)
+	{
+		boost::algorithm::trim(*i);
+		std::stringstream stream(*i);
+		stream >> number;
+		doubles.push_back(number);
+	}
+	return doubles;
+}
+
+std::vector<std::string> BeatMap::parseStringToVectorOfTrimmedStrings(std::string line)
+{
+	std::vector<std::string> strings;
+	boost::split(strings, line, boost::is_any_of(","));
+	for (std::vector<std::string>::iterator i = strings.begin(); i != strings.end(); ++i)
+	{
+		boost::algorithm::trim_if(*i, boost::is_any_of("() "));
+		std::cout << *i << std::endl;
+	}
+	return strings;
+}
+
+std::vector<PathMotion> BeatMap::parseStringVectorToPathMotionVector(std::vector<std::string> strings)
+{
+	std::vector<PathMotion> pathMotion;
+	std::vector<std::string> lines;
+	for (std::vector<std::string>::iterator i = strings.begin(); i != strings.end(); ++i)
+	{
+		boost::split(lines, *i, boost::is_any_of("|"));
+		PathMotion pM;
+		pM.motion = (enums::motions)std::stoi(lines[0]);
+		pM.start_position = std::stod(lines[1]);
+		pM.end_position = std::stod(lines[2]);
+		pM.start_x = parseStringToFraction(lines[3]);
+		pM.end_x = parseStringToFraction(lines[4]);
+		//Add more functions here for future motions that involve special parameters
+		pathMotion.push_back(pM);
+	}
+	return pathMotion;
+}
+
+std::vector<BeatNote> BeatMap::parseStringVectorToBeatNoteVector(std::vector<std::string> strings)
+{
+	std::vector<BeatNote> beatNote;
+	std::vector<std::string> lines;
+	for (std::vector<std::string>::iterator i = strings.begin(); i != strings.end(); ++i)
+	{
+		boost::split(lines, *i, boost::is_any_of("|"));
+		BeatNote bN;
+		bN.note_type = (enums::noteType)std::stoi(lines[0]);
+		bN.start_position = std::stod(lines[1]);
+		//Safety precaution: auto make end_position = start_position if note type == SINGLE_HIT
+		if (bN.note_type == enums::SINGLE_HIT) { bN.end_position = std::stod(lines[1]); }
+		else { bN.end_position = std::stod(lines[2]); }
+
+		beatNote.push_back(bN);
+	}
+	return beatNote;
 }
 
 void BeatMap::generateKeyCoordinates()

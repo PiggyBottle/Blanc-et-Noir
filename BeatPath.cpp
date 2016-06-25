@@ -3,10 +3,11 @@
 #include <algorithm>
 
 BeatPath::BeatPath() {}
-BeatPath::BeatPath(SDL_Renderer *r, float center, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes)
+BeatPath::BeatPath(SDL_Renderer *r, float center, RGB color, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes)
 {
 	this->Renderer = r;
 	this->pathCenter = center;
+	this->pathColor = color;
 	this->SCREEN_WIDTH = var.screen_width;
 	this->pathWidth = var.path_width_ratio;
 	this->pathHighlightAlpha = var.path_highlight_alpha;

@@ -104,18 +104,18 @@ Instruction MusicSelection::process(SDL_Event e, Instruction nextInstruction)
 			}
 		}
 	}
-	SDL_RenderCopyEx(Renderer, screen, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
-	instruction.quit = false;
-	if (e.type == SDL_KEYDOWN)
-	{
-		//instruction.songToLoad = enums::UNRAVEL;
-		instruction.nextState = enums::MAIN_GAME;
-		instruction.gameKeys = 4;
-		uninit();
-	}
-	else
-	{
-		instruction.nextState = enums::MUSIC_SELECTION;
-	}
-	return instruction;
+	//SDL_RenderCopyEx(Renderer, screen, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
+	//instruction.quit = false;
+	//if (e.type == SDL_KEYDOWN)
+	//{
+	//	//instruction.songToLoad = enums::UNRAVEL;
+	//	instruction.nextState = enums::MAIN_GAME;
+	//	instruction.gameKeys = 4;
+	//	uninit();
+	//}
+	//else
+	//{
+	//	instruction.nextState = enums::MUSIC_SELECTION;
+	//}
+	//return instruction;
 }

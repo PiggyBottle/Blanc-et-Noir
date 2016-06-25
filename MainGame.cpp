@@ -31,12 +31,12 @@ void MainGame::init(Instruction nextInstruction)
 	uiHasFinishedTransitioning = false;
 	
 	//Load Textures
-	bg = loadTexture("gamebg2.jpg", Renderer);
+	bg = loadTexture("Music/"+nextInstruction.songToLoad + "/bg_blurred.jpg", Renderer);
 	if (bg == NULL) { std::cout << "Error loading texture" << std::endl; }
 	SDL_SetTextureBlendMode(bg, SDL_BLENDMODE_BLEND);
 
 	//Load Beat Map
-	beatMap = BeatMap(Renderer, initVariables, nextInstruction.gameKeys);
+	beatMap = BeatMap(Renderer, initVariables, nextInstruction);
 
 	
 

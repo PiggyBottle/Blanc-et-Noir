@@ -12,7 +12,7 @@ struct Path_Beat_Pair {
 class BeatMap
 {
 public:
-	BeatMap(SDL_Renderer *r, InitVariables var, int number_of_keys);
+	BeatMap(SDL_Renderer *r, InitVariables var, Instruction nextInstruction);
 	BeatMap();
 	~BeatMap();
 	void render(Uint32 currentTick, double currentMusicPosition, int timeBarY);
@@ -22,6 +22,7 @@ private:
 	SDL_Renderer *Renderer;
 	std::vector<BeatPath> beatPath, getBeatPath();
 	InitVariables initVariables;
+	Instruction instruction;
 	int SCREEN_HEIGHT, SCREEN_WIDTH, numberOfKeys, keySeparationThickness;
 	int getLinkedPath(int start, int end, double songPosition);
 	std::vector<int> keyCoordinates;
@@ -29,6 +30,11 @@ private:
 	double beatNoteBufferTime;
 	void generateKeyCoordinates(), generateKeyStatuses(std::vector<int> key_binds);
 	bool thereIsAnOverlap(int start, int end, std::vector<int> pathCoordinates);
+	float parseStringToFraction(std::string line);
+	std::vector<double> parseStringToVectorOfDoubles(std::string line);
+	std::vector<std::string> parseStringToVectorOfTrimmedStrings(std::string line);
+	std::vector<PathMotion> parseStringVectorToPathMotionVector(std::vector<std::string> strings);
+	std::vector<BeatNote> parseStringVectorToBeatNoteVector(std::vector<std::string> strings);
 	
 };
 

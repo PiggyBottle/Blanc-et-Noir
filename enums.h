@@ -73,6 +73,7 @@ struct PathMotion {
 	double end_position;
 	float start_x;
 	float end_x;
+	//Don't forget to update parsing function in BeatMap.cpp when you add more variables here!
 };
 
 struct BeatNote {
