@@ -16,6 +16,7 @@ namespace enums
 		LINEAR_SLIDE,
 		HALF_SINE_SLIDE,
 		FULL_SINE_SLIDE
+		//https ://www.wolframalpha.com/input/?i=plot+y+%3D+0.5(sin(x-pi%2F2)+%2B+1)
 	};
 
 	enum noteType {

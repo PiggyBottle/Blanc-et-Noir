@@ -116,7 +116,8 @@ enums::noteHit BeatPath::deregisterKey(int key, double songPosition)
 		hit = enums::OKAY;
 	}
 	else { hit = enums::PERFECT; }
-
+	
+	isHolding = false;
 	beatNotes.erase(beatNotes.begin());
 	return hit;
 

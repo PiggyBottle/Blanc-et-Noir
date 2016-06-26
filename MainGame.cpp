@@ -53,6 +53,8 @@ void MainGame::uninit()
 {
 	if (initted)
 	{
+		BASS_StreamFree(bgm);
+		BASS_StreamFree(sfx);
 		SDL_DestroyTexture(bg);
 		initted = false;
 	}
@@ -74,6 +76,13 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 		else if (hit == enums::MISS) { std::cout << "BREAK" << std::endl; }
 		//else if (hit == enums::NO_HIT) { std::cout << "No Hit" << std::endl; }
 	}
+
+	//For mapping purposes
+	if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)
+	{
+		uninit();
+	}
+
 	//Blit Background image
 	SDL_SetTextureAlphaMod(bg, processBgAlpha());
 	SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
@@ -95,11 +104,11 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	if (!uiHasFinishedTransitioning) { timeBarY = processTimeBarY(); timeBar.y = timeBarY - ((int)(0.5f * ((float)timeBar.h)));}
 	SDL_RenderFillRect(Renderer, &timeBar);
 
-	instruction.quit = false;
-	instruction.nextState = enums::MAIN_GAME;
+	nextInstruction.quit = false;
+	nextInstruction.nextState = enums::MAIN_GAME;
 
 
-	return instruction;
+	return nextInstruction;
 }
 
 int MainGame::processTimeBarY()
