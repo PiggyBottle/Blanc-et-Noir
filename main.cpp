@@ -19,6 +19,7 @@ int main(int argc, char* args[]) {
 	var.mainGame_bg_alpha = 255;
 	var.mainGame_ui_transition_time = 500;
 	var.timeBar_thickness = 8;
+	var.timeBar_position = 1.f / 12.f;
 	var.keySeparation_thickness = 4;
 	var.path_highlight_alpha = (Uint8)155;
 	var.note_radius_ratio = (float)(1.0 / 60.0);
@@ -26,7 +27,7 @@ int main(int argc, char* args[]) {
 	var.note_buffer_time = (double)1.0;
 	//Notes later than this buffer time will count as a break
 	var.keyBinds = { SDLK_s,SDLK_d,SDLK_f,SDLK_j,SDLK_k,SDLK_l };
-	var.okay_hit_buffer_time = 0.5;
+	var.okay_hit_buffer_time = 0.3;
 	var.perfect_hit_buffer_time = 0.1;
 
 	Game game = Game(var);

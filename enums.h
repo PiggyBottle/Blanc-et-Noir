@@ -49,6 +49,7 @@ struct InitVariables {
 	int mainGame_bg_alpha;
 	int mainGame_ui_transition_time;
 	int timeBar_thickness;
+	float timeBar_position;
 	int keySeparation_thickness;
 	Uint8 path_highlight_alpha;
 	float note_radius_ratio;

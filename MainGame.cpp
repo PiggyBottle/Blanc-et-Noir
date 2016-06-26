@@ -18,7 +18,7 @@ MainGame::MainGame(SDL_Renderer *gRenderer, InitVariables var)
 	this->startUpFadeTime = var.maingame_startup_fadein_time;
 	this->bgAlpha = var.mainGame_bg_alpha;
 	this->uiTransitionTime = var.mainGame_ui_transition_time;
-	this->timeBar = { 0,5 * (SCREEN_HEIGHT / 6),SCREEN_WIDTH,var.timeBar_thickness };
+	this->timeBar = { 0,(int)((1.f - var.timeBar_position) * ((float)SCREEN_HEIGHT)) ,SCREEN_WIDTH,var.timeBar_thickness };
 	this->initVariables = var;
 }
 
@@ -43,7 +43,7 @@ void MainGame::init(Instruction nextInstruction)
 	std::string songToLoad = "Music/" + nextInstruction.songToLoad + '/' + nextInstruction.songToLoad + ".mp3";
 	//Last argument in this function should be replaced with "BASS_SAMPLE_LOOP" flag if you want to repeat
 	bgm = BASS_StreamCreateFile(false, songToLoad.c_str(), 0, 0, 0);
-	//BASS_ChannelSetPosition(bgm, 1000000, BASS_POS_BYTE);
+	//BASS_ChannelSetPosition(bgm, BASS_ChannelSeconds2Bytes(bgm,20), BASS_POS_BYTE);
 	sfx = BASS_StreamCreateFile(false, "brightest-hat.aif", 0, 0, 0);
 
 	initted = true;
@@ -53,6 +53,7 @@ void MainGame::uninit()
 {
 	if (initted)
 	{
+		beatMap = BeatMap();
 		BASS_StreamFree(bgm);
 		BASS_StreamFree(sfx);
 		SDL_DestroyTexture(bg);
@@ -74,13 +75,13 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	
 		else if (hit == enums::OKAY) { std::cout << "Okay" << std::endl;BASS_ChannelSetPosition(sfx, 0, BASS_POS_BYTE); BASS_ChannelPlay(sfx, false); }
 		else if (hit == enums::MISS) { std::cout << "BREAK" << std::endl; }
-		//else if (hit == enums::NO_HIT) { std::cout << "No Hit" << std::endl; }
 	}
 
 	//For mapping purposes
 	if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)
 	{
 		uninit();
+		return nextInstruction;
 	}
 
 	//Blit Background image
@@ -121,7 +122,7 @@ int MainGame::processTimeBarY()
 		//y = 1.34 sin(2.3x). y = 1 when x = 1
 		//Animation speed can be changed by altering ui transition time in main.cpp
 		float multiplier = (((float)1.34) * (float)(std::sin(2.3*((float)timeRemaining / (float)uiTransitionTime))));
-		float offset = (((float)1) / ((float)6)) * SCREEN_HEIGHT * multiplier;
+		float offset = initVariables.timeBar_position * SCREEN_HEIGHT * multiplier;
 		//printf("%d\n", offset);
 		return (int)(SCREEN_HEIGHT - offset);
 	}
@@ -129,7 +130,7 @@ int MainGame::processTimeBarY()
 	{
 		uiHasFinishedTransitioning = true;
 		BASS_ChannelPlay(bgm, false);
-		return 5 * (SCREEN_HEIGHT / 6);
+		return ((int)((1.f - initVariables.timeBar_position) * SCREEN_HEIGHT));
 	}
 }
 

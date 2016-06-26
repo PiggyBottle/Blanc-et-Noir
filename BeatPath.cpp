@@ -267,7 +267,7 @@ void BeatPath::drawPathCenter(int centerOfPath, int timeBarY)
 	SDL_Rect rect = {centerOfPath - ((int)(0.5f*((float)pathCenterThickness))),0,pathCenterThickness,timeBarY};
 	SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_NONE);
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-	SDL_RenderFillRect(Renderer, &rect);
+	//SDL_RenderFillRect(Renderer, &rect);
 }
 
 

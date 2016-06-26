@@ -285,7 +285,6 @@ enums::noteHit BeatMap::processInput(SDL_Event e, double songPosition)
 	}
 	else if (e.type == SDL_KEYDOWN && !keyStatuses[key].already_pressed)
 	{
-		std::cout << songPosition << std::endl;
 		keyStatuses[key].already_pressed = true;
 		keyStatuses[key].linked_path = getLinkedPath(keyCoordinates[key],keyCoordinates[key+1], songPosition);
 		if (keyStatuses[key].linked_path != -1) {
