@@ -15,7 +15,7 @@ public:
 	BeatMap(SDL_Renderer *r, InitVariables var, Instruction nextInstruction);
 	BeatMap();
 	~BeatMap();
-	void render(Uint32 currentTick, double currentMusicPosition, int timeBarY);
+	void render(Uint32 currentTick, double currentMusicPosition, int timeBarY, SDL_Texture *note);
 	enums::noteHit BeatMap::processInput(SDL_Event e, double songPosition);
 	std::vector<enums::noteHit> computeVariables(double songPosition);
 private:

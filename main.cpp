@@ -18,11 +18,11 @@ int main(int argc, char* args[]) {
 	var.maingame_startup_fadein_time = 1000;
 	var.mainGame_bg_alpha = 255;
 	var.mainGame_ui_transition_time = 500;
-	var.timeBar_thickness = 8;
+	var.timeBar_thickness = 2;
 	var.timeBar_position = 1.f / 12.f;
-	var.keySeparation_thickness = 4;
+	var.keySeparation_thickness = 2;
 	var.path_highlight_alpha = (Uint8)155;
-	var.note_radius_ratio = (float)(1.0 / 60.0);
+	var.note_radius_ratio = (float)(1.0 / 40.0);
 	//Only notes within this buffer time will be blitted
 	var.note_buffer_time = (double)1.0;
 	//Notes later than this buffer time will count as a break

@@ -35,7 +35,7 @@ enums::noteHit BeatPath::computeVariables(double songPosition)
 	return computeBeatNotes(songPosition);
 }
 
-void BeatPath::renderPath(double songPosition, int timeBarY, double beatnote_buffer_time)
+void BeatPath::renderPath(double songPosition, int timeBarY, double beatnote_buffer_time,SDL_Texture *note)
 {
 	if (!isOn) { return; }
 
@@ -49,7 +49,7 @@ void BeatPath::renderPath(double songPosition, int timeBarY, double beatnote_buf
 	drawBorders(timeBarY);
 
 	//Draw beat notes
-	drawBeatNotes(songPosition, timeBarY, beatnote_buffer_time, currentCenterOfPath);
+	drawBeatNotes(songPosition, timeBarY, beatnote_buffer_time, currentCenterOfPath, note);
 
 }
 
@@ -157,7 +157,7 @@ enums::noteHit BeatPath::computeBeatNotes(double songPosition)
 	return hit;
 }
 
-void BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path)
+void BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path, SDL_Texture *note)
 {
 
 	for (std::vector<BeatNote>::iterator i = beatNotes.begin(); i != beatNotes.end(); ++i)
@@ -165,12 +165,12 @@ void BeatPath::drawBeatNotes(double songPosition, int timeBarY, double beatnote_
 
 		//Draw active notes
 		if (i->start_position - songPosition > beatnote_buffer_time) { break; }
-		renderBeatNotes(songPosition, timeBarY, beatnote_buffer_time, center_of_path, i);
+		renderBeatNotes(songPosition, timeBarY, beatnote_buffer_time, center_of_path, i, note);
 	}
 }
 
 
-void BeatPath::renderBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path, std::vector<BeatNote>::iterator beat_note)
+void BeatPath::renderBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path, std::vector<BeatNote>::iterator beat_note, SDL_Texture *note)
 {
 	
 	Sint16 x[4], y[4], noteCenterY;
@@ -181,19 +181,31 @@ void BeatPath::renderBeatNotes(double songPosition, int timeBarY, double beatnot
 		noteToBufferRatio = 0; 
 	}
 	noteCenterY = (Sint16) (((double)(timeBarY)) * (((double)1) - noteToBufferRatio));
-	
-	//Compute Vertex Array
-	x[0] = (Sint16)center_of_path;
-	y[0] = noteCenterY - ((Sint16)(noteRadiusRatio * ((float)SCREEN_WIDTH)));
-	x[1] = (Sint16)center_of_path - ((Sint16)(noteRadiusRatio * ((float)SCREEN_WIDTH)));
-	y[1] = noteCenterY;
-	x[2] = (Sint16)center_of_path;
-	y[2] = noteCenterY + ((Sint16)(noteRadiusRatio * ((float)SCREEN_WIDTH)));
-	x[3] = (Sint16)center_of_path + ((Sint16)(noteRadiusRatio * ((float)SCREEN_WIDTH)));
-	y[3] = noteCenterY;
 
-	//Render note
-	filledPolygonRGBA(Renderer,x,y,4,0,0,0,255);
+	int noteRadius = (int)(noteRadiusRatio * ((float)SCREEN_WIDTH));
+	if (beat_note->note_type == enums::SINGLE_HIT) {
+		SDL_Rect noteRect = { center_of_path - noteRadius,noteCenterY - noteRadius,noteRadius * 2,noteRadius * 2 };
+		SDL_RenderCopyEx(Renderer, note, NULL, &noteRect, NULL, 0, SDL_FLIP_NONE);
+	}
+	else { SDL_Rect noteRect = {center_of_path-noteRadius,noteCenterY,noteRadius*2,noteRadius};
+	SDL_Rect partialRect = {0,50,100,50};
+	SDL_RenderCopyEx(Renderer, note, &partialRect, &noteRect, NULL, 0, SDL_FLIP_NONE);
+	}
+
+	////Compute Vertex Array
+	//x[0] = (Sint16)center_of_path;
+	//y[0] = noteCenterY - ((Sint16)(noteRadiusRatio * ((float)SCREEN_WIDTH)));
+	//x[1] = (Sint16)center_of_path - ((Sint16)(noteRadiusRatio * ((float)SCREEN_WIDTH)));
+	//y[1] = noteCenterY;
+	//x[2] = (Sint16)center_of_path;
+	//y[2] = noteCenterY + ((Sint16)(noteRadiusRatio * ((float)SCREEN_WIDTH)));
+	//x[3] = (Sint16)center_of_path + ((Sint16)(noteRadiusRatio * ((float)SCREEN_WIDTH)));
+	//y[3] = noteCenterY;
+
+	////Render note
+	//filledPolygonRGBA(Renderer,x,y,4,0,0,0,255);
+	
+
 
 	//That's all that's needed for SINGLE_HITs.
 	if (beat_note->note_type == enums::SINGLE_HIT) { return; }
@@ -203,8 +215,18 @@ void BeatPath::renderBeatNotes(double songPosition, int timeBarY, double beatnot
 	if (holdNoteToBufferRatio > 1) { holdNoteToBufferRatio = 1; }
 	if (holdNoteToBufferRatio < 0) { holdNoteToBufferRatio = 0; }
 	int holdNoteCenterY = (int) (((double)(timeBarY)) * (((double)1) - holdNoteToBufferRatio));
-	SDL_Rect holdRect = { center_of_path - ((int)(noteRadiusRatio * ((float)SCREEN_WIDTH))), holdNoteCenterY, (int)(2.f * ((float)SCREEN_WIDTH) * noteRadiusRatio), ((int)noteCenterY) - holdNoteCenterY };
+	/*SDL_Rect holdRect = { center_of_path - ((int)(noteRadiusRatio * ((float)SCREEN_WIDTH))), holdNoteCenterY, (int)(2.f * ((float)SCREEN_WIDTH) * noteRadiusRatio), ((int)noteCenterY) - holdNoteCenterY };
+	SDL_RenderFillRect(Renderer, &holdRect);*/
+	float ratio = 0.25f;
+	int thickness = (int)(ratio*((float)noteRadius));
+	SDL_Rect holdRect = { center_of_path - noteRadius,holdNoteCenterY,thickness,((int)noteCenterY) - holdNoteCenterY };
 	SDL_RenderFillRect(Renderer, &holdRect);
+	holdRect.x = center_of_path + noteRadius - thickness;
+	SDL_RenderFillRect(Renderer, &holdRect);
+	SDL_Rect partialRect = { 0,0,100,50 }, noteRect = {center_of_path-noteRadius,holdNoteCenterY-noteRadius,2*noteRadius,noteRadius};
+	SDL_RenderCopyEx(Renderer, note, &partialRect, &noteRect, NULL, 0, SDL_FLIP_NONE);
+
+
 
 
 	

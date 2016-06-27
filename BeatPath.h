@@ -10,7 +10,7 @@ public:
 	BeatPath(SDL_Renderer *r, float center, float width, RGB color, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes);
 	BeatPath();
 	~BeatPath();
-	void renderPath(double songPosition, int timeBarY, double beatnote_buffer_time);
+	void renderPath(double songPosition, int timeBarY, double beatnote_buffer_time, SDL_Texture *note);
 	bool isOn = false;
 	std::vector<int> getCurrentPathWidthCoordinates();
 	double getNextBeatTime();
@@ -36,10 +36,10 @@ private:
 	std::vector<BeatNote> beatNotes;
 	std::vector<int> registeredKeys;
 	void drawPathCenter(int centerOfPath, int timeBarY);
-	void drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path);
+	void drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path, SDL_Texture *note);
 	void drawPathHighlight(int timeBarY);
 	void drawBorders(int timeBarY);
-	void renderBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time,int center_of_path, std::vector<BeatNote>::iterator beat_note);
+	void renderBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time,int center_of_path, std::vector<BeatNote>::iterator beat_note, SDL_Texture *note);
 	InitVariables initVariables;
 	enums::noteHit computeBeatNotes(double songPosition);
 	

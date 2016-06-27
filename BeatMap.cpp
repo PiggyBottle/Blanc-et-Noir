@@ -225,11 +225,11 @@ bool BeatMap::thereIsAnOverlap(int start, int end, std::vector<int> pathCoordina
 	return (start < pathCoordinates[1] && end > pathCoordinates[0]);
 }
 
-void BeatMap::render(Uint32 currentTick, double currentMusicPosition, int timeBarY)
+void BeatMap::render(Uint32 currentTick, double currentMusicPosition, int timeBarY, SDL_Texture *note)
 {
 	for (std::vector<BeatPath>::iterator i = beatPath.begin(); i != beatPath.end(); ++i)
 	{
-		i->renderPath( currentMusicPosition, timeBarY, beatNoteBufferTime);
+		i->renderPath( currentMusicPosition, timeBarY, beatNoteBufferTime,note);
 	}
 
 	SDL_Rect a = { 0,timeBarY,keySeparationThickness,SCREEN_HEIGHT - timeBarY };

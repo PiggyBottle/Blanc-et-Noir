@@ -33,6 +33,7 @@ void MainGame::init(Instruction nextInstruction)
 	bg = loadTexture("Music/"+nextInstruction.songToLoad + "/bg_blurred.jpg", Renderer);
 	if (bg == NULL) { std::cout << "Error loading texture" << std::endl; }
 	SDL_SetTextureBlendMode(bg, SDL_BLENDMODE_BLEND);
+	note = loadTexture("beatnote2.png", Renderer);
 
 	//Load Beat Map
 	beatMap = BeatMap(Renderer, initVariables, nextInstruction);
@@ -57,6 +58,7 @@ void MainGame::uninit()
 		BASS_StreamFree(bgm);
 		BASS_StreamFree(sfx);
 		SDL_DestroyTexture(bg);
+		SDL_DestroyTexture(note);
 		initted = false;
 	}
 }
@@ -98,7 +100,7 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	} }
 
 	//Blit map
-	beatMap.render(currentTick, currentSongPosition, timeBarY);
+	beatMap.render(currentTick, currentSongPosition, timeBarY,note);
 
 	//Blit UI
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);

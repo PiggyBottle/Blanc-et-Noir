@@ -16,7 +16,7 @@ GameState::GameState(SDL_Renderer *gRenderer)
 GameState::~GameState()
 {
 }
-SDL_Texture *GameState::loadTexture(std::string path, SDL_Renderer *R) {
+SDL_Texture *GameState::loadTexture(std::string path, SDL_Renderer *R, bool to_clip, RGB rgb) {
 	//The final texture
 	SDL_Texture* newTexture = NULL;
 
@@ -28,6 +28,11 @@ SDL_Texture *GameState::loadTexture(std::string path, SDL_Renderer *R) {
 	}
 	else
 	{
+		if (to_clip) {
+			//Color key image
+			SDL_SetColorKey(loadedSurface, SDL_TRUE, SDL_MapRGB(loadedSurface->format, rgb.r, rgb.g, rgb.b));
+		}
+
 		//Create texture from surface pixels
 		newTexture = SDL_CreateTextureFromSurface(R, loadedSurface);
 		if (newTexture == NULL)
