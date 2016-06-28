@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iostream>
 
-BeatMap::BeatMap(SDL_Renderer *r, InitVariables var, Instruction nextInstruction)
+BeatMap::BeatMap(SDL_Renderer *r, InitVariables var, Instruction nextInstruction, SDL_Texture *note)
 {
 	this->Renderer = r;
 	this->initVariables = var;
@@ -14,6 +14,7 @@ BeatMap::BeatMap(SDL_Renderer *r, InitVariables var, Instruction nextInstruction
 	this->SCREEN_WIDTH = var.screen_width;
 	this->beatNoteBufferTime = var.note_buffer_time;
 	this->keySeparationThickness = var.keySeparation_thickness;
+	this->noteTexture = note;
 
 	this->numberOfKeys = nextInstruction.gameKeys;
 	generateKeyCoordinates();
@@ -94,7 +95,7 @@ std::vector<BeatPath> BeatMap::getBeatPath()
 				beatNotes = parseStringVectorToBeatNoteVector(parseStringToVectorOfTrimmedStrings(line2));
 			}
 		}
-		beatPath.push_back(BeatPath(Renderer, startPosition, startWidth, startColor, initVariables, startEnd, pathMotion, widthMotion, beatNotes));
+		beatPath.push_back(BeatPath(Renderer, noteTexture, startPosition, startWidth, startColor, initVariables, startEnd, pathMotion, widthMotion, beatNotes));
 	}
 	return beatPath;
 }
@@ -225,11 +226,11 @@ bool BeatMap::thereIsAnOverlap(int start, int end, std::vector<int> pathCoordina
 	return (start < pathCoordinates[1] && end > pathCoordinates[0]);
 }
 
-void BeatMap::render(Uint32 currentTick, double currentMusicPosition, int timeBarY, SDL_Texture *note)
+void BeatMap::render(Uint32 currentTick, double currentMusicPosition, int timeBarY)
 {
 	for (std::vector<BeatPath>::iterator i = beatPath.begin(); i != beatPath.end(); ++i)
 	{
-		i->renderPath( currentMusicPosition, timeBarY, beatNoteBufferTime,note);
+		i->renderPath( currentMusicPosition, timeBarY, beatNoteBufferTime);
 	}
 
 	SDL_Rect a = { 0,timeBarY,keySeparationThickness,SCREEN_HEIGHT - timeBarY };

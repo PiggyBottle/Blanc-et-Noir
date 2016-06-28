@@ -18,7 +18,7 @@ private:
 	Uint8 processBgAlpha();
 	Uint32 currentTick, startUpTick;
 	SDL_Renderer *Renderer;
-	SDL_Texture *bg = NULL, *note = NULL;
+	SDL_Texture *bg = NULL, *note = NULL, *font = NULL;
 	SDL_Rect timeBar;
 	Instruction instruction;
 	bool initted = false, uiHasFinishedTransitioning = false;

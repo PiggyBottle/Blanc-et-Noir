@@ -51,7 +51,7 @@ SDL_Texture *GameState::loadFont(SDL_Renderer *R, std::string fontName, int font
 {
 	SDL_Texture *newTexture = NULL;
 	TTF_Font *font = TTF_OpenFont(fontName.c_str(), fontSize);
-	SDL_Surface *textSurface = TTF_RenderText_Blended(font, textureText.c_str(), textColor);
+	SDL_Surface *textSurface = TTF_RenderUTF8_Blended(font, textureText.c_str(), textColor);
 	if (textSurface == NULL)
 	{
 		std::cout << "Unable to render text surface! SDL_ttf Error: " << TTF_GetError() << std::endl;

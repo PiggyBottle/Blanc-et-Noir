@@ -33,10 +33,14 @@ void MainGame::init(Instruction nextInstruction)
 	bg = loadTexture("Music/"+nextInstruction.songToLoad + "/bg_blurred.jpg", Renderer);
 	if (bg == NULL) { std::cout << "Error loading texture" << std::endl; }
 	SDL_SetTextureBlendMode(bg, SDL_BLENDMODE_BLEND);
-	note = loadTexture("beatnote2.png", Renderer);
+	note = loadTexture("beatnote.png", Renderer);
+
+	//Load fonts
+	SDL_Color color= { 0,0,0 };
+	font = loadFont(Renderer, "Noto.otf", 70, "COMBO", color);
 
 	//Load Beat Map
-	beatMap = BeatMap(Renderer, initVariables, nextInstruction);
+	beatMap = BeatMap(Renderer, initVariables, nextInstruction,note);
 
 	
 
@@ -100,7 +104,7 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	} }
 
 	//Blit map
-	beatMap.render(currentTick, currentSongPosition, timeBarY,note);
+	beatMap.render(currentTick, currentSongPosition, timeBarY);
 
 	//Blit UI
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);

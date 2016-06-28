@@ -12,14 +12,15 @@ struct Path_Beat_Pair {
 class BeatMap
 {
 public:
-	BeatMap(SDL_Renderer *r, InitVariables var, Instruction nextInstruction);
+	BeatMap(SDL_Renderer *r, InitVariables var, Instruction nextInstruction, SDL_Texture *note);
 	BeatMap();
 	~BeatMap();
-	void render(Uint32 currentTick, double currentMusicPosition, int timeBarY, SDL_Texture *note);
+	void render(Uint32 currentTick, double currentMusicPosition, int timeBarY);
 	enums::noteHit BeatMap::processInput(SDL_Event e, double songPosition);
 	std::vector<enums::noteHit> computeVariables(double songPosition);
 private:
 	SDL_Renderer *Renderer;
+	SDL_Texture *noteTexture = NULL;
 	std::vector<BeatPath> beatPath, getBeatPath();
 	InitVariables initVariables;
 	Instruction instruction;

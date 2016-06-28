@@ -7,10 +7,10 @@
 class BeatPath
 {
 public:
-	BeatPath(SDL_Renderer *r, float center, float width, RGB color, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes);
+	BeatPath(SDL_Renderer *r,SDL_Texture *note, float center, float width, RGB color, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes);
 	BeatPath();
 	~BeatPath();
-	void renderPath(double songPosition, int timeBarY, double beatnote_buffer_time, SDL_Texture *note);
+	void renderPath(double songPosition, int timeBarY, double beatnote_buffer_time);
 	bool isOn = false;
 	std::vector<int> getCurrentPathWidthCoordinates();
 	double getNextBeatTime();
@@ -19,6 +19,7 @@ public:
 	bool isHolding = false;
 private:
 	SDL_Renderer *Renderer;
+	SDL_Texture *noteTexture=NULL;
 	StartEnd startEnd;
 	float pathWidth, noteRadiusRatio;
 	//pathCenter is what will be used to keep track of what the path should be at when there are no motions going on
@@ -36,10 +37,10 @@ private:
 	std::vector<BeatNote> beatNotes;
 	std::vector<int> registeredKeys;
 	void drawPathCenter(int centerOfPath, int timeBarY);
-	void drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path, SDL_Texture *note);
+	void drawBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time, int center_of_path);
 	void drawPathHighlight(int timeBarY);
 	void drawBorders(int timeBarY);
-	void renderBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time,int center_of_path, std::vector<BeatNote>::iterator beat_note, SDL_Texture *note);
+	void renderBeatNotes(double songPosition, int timeBarY, double beatnote_buffer_time,int center_of_path, std::vector<BeatNote>::iterator beat_note);
 	InitVariables initVariables;
 	enums::noteHit computeBeatNotes(double songPosition);
 	
