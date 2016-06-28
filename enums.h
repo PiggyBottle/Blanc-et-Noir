@@ -25,10 +25,10 @@ namespace enums
 	};
 
 	enum noteHit {
-		NO_HIT,
 		PERFECT,
 		OKAY,
-		MISS
+		BREAK,
+		NO_HIT
 	};
 }
 
@@ -50,6 +50,15 @@ struct InitVariables {
 	int mainGame_ui_transition_time;
 	int timeBar_thickness;
 	float timeBar_position;
+	std::string combo_font;
+	std::string note_hit_font;
+	double combo_and_note_hit_update_buffer;
+	float combo_and_note_hit_separator;
+	double combo_and_note_hit_animation_time;
+	float combo_max_height;
+	float note_hit_max_height;
+	//The amount to raise the combo square by so that it isn't too far from the notehit indicator
+	float combo_offset_height;
 	int keySeparation_thickness;
 	Uint8 path_highlight_alpha;
 	float note_radius_ratio;
@@ -92,4 +101,18 @@ struct KeyStatus {
 	int key;
 	bool already_pressed;
 	int linked_path;
+};
+
+//To be used exclusively for MainGame to keep track of combo/notehit blits
+struct MostRecentNoteHit {
+	bool comboHasBeenUpdated;
+	enums::noteHit hit;
+	double comboUpdateTime;
+	int combo;
+};
+
+struct TextureWithVariables {
+	SDL_Texture *texture;
+	int height;
+	int width;
 };

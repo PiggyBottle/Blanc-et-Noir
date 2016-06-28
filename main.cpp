@@ -20,6 +20,14 @@ int main(int argc, char* args[]) {
 	var.mainGame_ui_transition_time = 500;
 	var.timeBar_thickness = 2;
 	var.timeBar_position = 1.f / 12.f;
+	var.combo_font = "Noto.otf";
+	var.note_hit_font = "Noto.otf";
+	var.combo_and_note_hit_update_buffer = 0.5;
+	var.combo_and_note_hit_separator = 0.2f;
+	var.combo_and_note_hit_animation_time = 0.1;
+	var.combo_max_height = 0.30f;
+	var.note_hit_max_height = 0.1f;
+	var.combo_offset_height = (float)(18.0 / 310.0);
 	var.keySeparation_thickness = 2;
 	var.path_highlight_alpha = (Uint8)155;
 	var.note_radius_ratio = (float)(1.0 / 40.0);

@@ -47,9 +47,9 @@ SDL_Texture *GameState::loadTexture(std::string path, SDL_Renderer *R, bool to_c
 	return newTexture;
 }
 
-SDL_Texture *GameState::loadFont(SDL_Renderer *R, std::string fontName, int fontSize, std::string textureText, SDL_Color textColor)
+TextureWithVariables GameState::loadFont(SDL_Renderer *R, std::string fontName, int fontSize, std::string textureText, SDL_Color textColor)
 {
-	SDL_Texture *newTexture = NULL;
+	TextureWithVariables twv = { NULL,0,0 };
 	TTF_Font *font = TTF_OpenFont(fontName.c_str(), fontSize);
 	SDL_Surface *textSurface = TTF_RenderUTF8_Blended(font, textureText.c_str(), textColor);
 	if (textSurface == NULL)
@@ -59,18 +59,20 @@ SDL_Texture *GameState::loadFont(SDL_Renderer *R, std::string fontName, int font
 	else
 	{
 		//Create texture from surface pixels
-		newTexture = SDL_CreateTextureFromSurface(R, textSurface);
-		if (newTexture == NULL)
+		twv.texture = SDL_CreateTextureFromSurface(R, textSurface);
+		if (twv.texture == NULL)
 		{
 			std::cout << "Unable to create texture from rendered text! SDL Error: " << SDL_GetError() << std::endl;
 		}
 		else {
+			twv.height = textSurface->h;
+			twv.width = textSurface->w;
 		}
 	}
 	SDL_FreeSurface(textSurface);
 	TTF_CloseFont(font);
 	font = NULL;
-	return newTexture;
+	return twv;
 }
 
 StartingScreen::StartingScreen()

@@ -110,7 +110,7 @@ enums::noteHit BeatPath::deregisterKey(int key, double songPosition)
 
 	if (beatNotes[0].end_position - songPosition > initVariables.okay_hit_buffer_time)
 	{
-		hit = enums::MISS;
+		hit = enums::BREAK;
 	}
 	else if (beatNotes[0].end_position - songPosition > initVariables.perfect_hit_buffer_time)
 	{
@@ -145,7 +145,7 @@ enums::noteHit BeatPath::computeBeatNotes(double songPosition)
 	//Delete expired notes and register a break
 	while (thereAreExpiredNotes)
 	{ 
-		if (beatNotes[0].note_type == enums::SINGLE_HIT || (beatNotes[0].note_type == enums::SINGLE_HOLD && !isHolding)) { hit = enums::MISS; }
+		if (beatNotes[0].note_type == enums::SINGLE_HIT || (beatNotes[0].note_type == enums::SINGLE_HOLD && !isHolding)) { hit = enums::BREAK; }
 		else if (beatNotes[0].note_type == enums::SINGLE_HOLD && songPosition > beatNotes[0].end_position  && isHolding) { hit = enums::PERFECT; }
 		isHolding = false;
 		beatNotes.erase(beatNotes.begin());

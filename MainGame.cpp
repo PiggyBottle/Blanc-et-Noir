@@ -4,6 +4,7 @@
 #include <bassflac.h>
 #include <cmath>
 #include <string>
+#include <algorithm>
 
 
 
@@ -35,14 +36,17 @@ void MainGame::init(Instruction nextInstruction)
 	SDL_SetTextureBlendMode(bg, SDL_BLENDMODE_BLEND);
 	note = loadTexture("beatnote.png", Renderer);
 
-	//Load fonts
+	//Load noteHits
 	SDL_Color color= { 0,0,0 };
-	font = loadFont(Renderer, "Noto.otf", 70, "COMBO", color);
+	noteHitTypes[enums::PERFECT] = loadFont(Renderer, initVariables.note_hit_font, 70, "PERFECT", color);
+	noteHitTypes[enums::OKAY] = loadFont(Renderer, initVariables.note_hit_font, 70, "OKAY", color);
+	noteHitTypes[enums::BREAK] = loadFont(Renderer, initVariables.note_hit_font, 70, "BREAK", color);
+	for (int i = 0; i < enums::NO_HIT; i++) {
+		SDL_SetTextureBlendMode(noteHitTypes[i].texture, SDL_BLENDMODE_BLEND);
+	}
 
 	//Load Beat Map
 	beatMap = BeatMap(Renderer, initVariables, nextInstruction,note);
-
-	
 
 	//Load music/SFX
 	std::string songToLoad = "Music/" + nextInstruction.songToLoad + '/' + nextInstruction.songToLoad + ".mp3";
@@ -51,6 +55,7 @@ void MainGame::init(Instruction nextInstruction)
 	//BASS_ChannelSetPosition(bgm, BASS_ChannelSeconds2Bytes(bgm,20), BASS_POS_BYTE);
 	sfx = BASS_StreamCreateFile(false, "brightest-hat.aif", 0, 0, 0);
 
+	mostRecentNoteHit = { false,enums::NO_HIT, 0.0, 0 };
 	initted = true;
 }
 
@@ -63,6 +68,7 @@ void MainGame::uninit()
 		BASS_StreamFree(sfx);
 		SDL_DestroyTexture(bg);
 		SDL_DestroyTexture(note);
+		for (int i = 0; i < enums::NO_HIT; i++) { SDL_DestroyTexture(noteHitTypes[i].texture); }
 		initted = false;
 	}
 }
@@ -72,15 +78,12 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	currentTick = SDL_GetTicks();
 
 	if (!initted) { init(nextInstruction); }
-	double currentSongPosition = BASS_ChannelBytes2Seconds(bgm, (BASS_ChannelGetPosition(bgm, BASS_POS_BYTE)));
 
+	double currentSongPosition = BASS_ChannelBytes2Seconds(bgm, (BASS_ChannelGetPosition(bgm, BASS_POS_BYTE)));
+	std::vector<enums::noteHit> hits;
 	if ((e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) && (std::find(initVariables.keyBinds.begin(), initVariables.keyBinds.end(), e.key.keysym.sym) != initVariables.keyBinds.end())) 
 	{ 
-		enums::noteHit hit = beatMap.processInput(e,currentSongPosition); 
-		if (hit == enums::PERFECT) { std::cout << "Perfect!" << std::endl; BASS_ChannelSetPosition(sfx, 0, BASS_POS_BYTE); BASS_ChannelPlay(sfx, false); }
-	
-		else if (hit == enums::OKAY) { std::cout << "Okay" << std::endl;BASS_ChannelSetPosition(sfx, 0, BASS_POS_BYTE); BASS_ChannelPlay(sfx, false); }
-		else if (hit == enums::MISS) { std::cout << "BREAK" << std::endl; }
+		hits.push_back(beatMap.processInput(e,currentSongPosition));
 	}
 
 	//For mapping purposes
@@ -95,13 +98,17 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
 	
 	//Compute beatMap variables
-	std::vector<enums::noteHit> hits = beatMap.computeVariables(currentSongPosition);
-	for (auto i = hits.begin(); i!=hits.end(); ++i)
+	beatMap.computeVariables(currentSongPosition, &hits);
+
+	//Compute combo
+	computeCombo(&hits, currentSongPosition);
+
+
+	//Play note sound if there was a hit
+	if (std::find(hits.begin(), hits.end(), enums::OKAY) != hits.end() || std::find(hits.begin(), hits.end(), enums::PERFECT) != hits.end())
 	{
-		switch (*i) {
-		case enums::PERFECT: std::cout << "PERFECT" << std::endl;BASS_ChannelSetPosition(sfx, 0, BASS_POS_BYTE); BASS_ChannelPlay(sfx, false); break;
-		case enums::MISS: std::cout << "BREAK" << std::endl; break;
-	} }
+		BASS_ChannelSetPosition(sfx, 0, BASS_POS_BYTE); BASS_ChannelPlay(sfx, false);
+	}
 
 	//Blit map
 	beatMap.render(currentTick, currentSongPosition, timeBarY);
@@ -110,6 +117,11 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
 	if (!uiHasFinishedTransitioning) { timeBarY = processTimeBarY(); timeBar.y = timeBarY - ((int)(0.5f * ((float)timeBar.h)));}
 	SDL_RenderFillRect(Renderer, &timeBar);
+
+	//Blit combo and hits
+	renderNoteHitAndCombo(currentSongPosition);
+
+
 
 	nextInstruction.quit = false;
 	nextInstruction.nextState = enums::MAIN_GAME;
@@ -151,4 +163,74 @@ Uint8 MainGame::processBgAlpha()
 	else { return bgAlpha; }
 }
 
+void MainGame::computeCombo(std::vector<enums::noteHit> *hits, double currentSongPosition)
+{
+	std::vector<enums::noteHit> hitsAccepted = { enums::BREAK,enums::PERFECT,enums::OKAY };
+	for (std::vector<enums::noteHit>::iterator i = hits->begin(); i != hits->end(); ++i)
+	{
+		if (std::find(hitsAccepted.begin(), hitsAccepted.end(), *i) != hitsAccepted.end())
+		{
+			mostRecentNoteHit.comboHasBeenUpdated = true;
+			if (*i == enums::PERFECT || *i == enums::OKAY) { ++mostRecentNoteHit.combo; }
+			else if (*i == enums::BREAK) { mostRecentNoteHit.combo = 0; }
+		}
+	}
+	if (mostRecentNoteHit.comboHasBeenUpdated) {
+		mostRecentNoteHit.hit = computeMostRecentNoteHit(hits);
+		mostRecentNoteHit.comboUpdateTime = currentSongPosition;
+		mostRecentNoteHit.comboHasBeenUpdated = false;
+	}
+}
 
+enums::noteHit MainGame::computeMostRecentNoteHit(std::vector<enums::noteHit> *hits)
+{
+	enums::noteHit hit = enums::NO_HIT;
+	std::vector<enums::noteHit> hitsAccepted = { enums::BREAK,enums::PERFECT,enums::OKAY };
+	for (size_t i = hits->size(); i-- > 0;)
+	{
+		if (std::find(hitsAccepted.begin(), hitsAccepted.end(), (*hits)[i]) != hitsAccepted.end() && (*hits)[i] != hit)
+		{
+			hit = (*hits)[i];
+			break;
+		}
+	}
+	return hit;
+}
+
+void MainGame::renderNoteHitAndCombo(double currentSongPosition) {
+	double timeDelta = currentSongPosition - mostRecentNoteHit.comboUpdateTime;
+	if (timeDelta > initVariables.combo_and_note_hit_update_buffer || mostRecentNoteHit.hit == enums::NO_HIT) { return; }
+
+	//Compute note hit type
+	double widthToHeightRatio = ((double)noteHitTypes[mostRecentNoteHit.hit].width) / ((double)noteHitTypes[mostRecentNoteHit.hit].height);
+	float maxHeight = initVariables.note_hit_max_height;
+	int height = (int)(maxHeight * ((float)SCREEN_HEIGHT));
+	int width =(int)(widthToHeightRatio * ((double)height));
+	double timeDeltaPercent = timeDelta / initVariables.combo_and_note_hit_animation_time;
+	if (timeDeltaPercent > 1) { timeDeltaPercent = 1; };
+	timeDeltaPercent = 1.0 - (timeDeltaPercent * 0.3);
+	int modifiedWidth = (int)(((double)width) * timeDeltaPercent);
+	int modifiedHeight = (int)(((double)height) * timeDeltaPercent);
+	int separatorY = (int)(initVariables.combo_and_note_hit_separator * ((float)SCREEN_HEIGHT));
+
+	//Blit note hit type
+	SDL_Rect temp = {(SCREEN_WIDTH - modifiedWidth)/2, separatorY - modifiedHeight, modifiedWidth,modifiedHeight};
+	SDL_RenderCopyEx(Renderer, noteHitTypes[mostRecentNoteHit.hit].texture, NULL, &temp, 0, 0, SDL_FLIP_NONE);
+
+	//Compute combo
+	SDL_Color color = {0,0,0};
+	TextureWithVariables comboTexture = loadFont(Renderer, initVariables.combo_font, 70, std::to_string(mostRecentNoteHit.combo), color);
+	widthToHeightRatio = ((double)comboTexture.width) / ((double)comboTexture.height);
+	maxHeight = initVariables.combo_max_height;
+	height = (int)(maxHeight * ((float)SCREEN_HEIGHT));
+	width =(int)(widthToHeightRatio * ((double)height));
+	modifiedWidth = (int)(((double)width) * timeDeltaPercent);
+	modifiedHeight = (int)(((double)height) * timeDeltaPercent);
+	temp.x = (SCREEN_WIDTH - modifiedWidth) / 2;
+	temp.y = separatorY - (initVariables.combo_offset_height * SCREEN_HEIGHT);
+	temp.w = modifiedWidth;
+	temp.h = modifiedHeight;
+	SDL_RenderCopyEx(Renderer, comboTexture.texture, NULL, &temp, 0, 0, SDL_FLIP_NONE);
+	SDL_DestroyTexture(comboTexture.texture);
+	
+}

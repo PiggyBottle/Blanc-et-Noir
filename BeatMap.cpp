@@ -242,24 +242,22 @@ void BeatMap::render(Uint32 currentTick, double currentMusicPosition, int timeBa
 	}
 }
 
-std::vector<enums::noteHit> BeatMap::computeVariables(double songPosition)
+void BeatMap::computeVariables(double songPosition, std::vector<enums::noteHit> *hits)
 {
-	std::vector<enums::noteHit> hits;
 	for (size_t i = 0, ilen = keyStatuses.size(); i < ilen; ++i)
 	{
 		if (keyStatuses[i].linked_path == -1) { continue; }
 		if (!thereIsAnOverlap(keyCoordinates[i], keyCoordinates[i + 1], beatPath[keyStatuses[i].linked_path].getCurrentPathWidthCoordinates()))
 		{
-			hits.push_back(beatPath[keyStatuses[i].linked_path].deregisterKey((int)i,songPosition));
+			hits->push_back(beatPath[keyStatuses[i].linked_path].deregisterKey((int)i,songPosition));
 			keyStatuses[i].linked_path = -1;
 		}
 	}
 
 	for (std::vector<BeatPath>::iterator i = beatPath.begin(); i != beatPath.end(); ++i)
 	{
-		hits.push_back(i->computeVariables(songPosition));
+		hits->push_back(i->computeVariables(songPosition));
 	}
-	return hits;
 }
 
 enums::noteHit BeatMap::processInput(SDL_Event e, double songPosition)

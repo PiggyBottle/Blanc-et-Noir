@@ -14,11 +14,14 @@ public:
 	void uninit();
 	Instruction process(SDL_Event e, Instruction nextInstruction);
 private:
-	void init(Instruction nextInstruction);
+	void init(Instruction nextInstruction), computeCombo(std::vector<enums::noteHit> *hits, double currentSongPosition), renderNoteHitAndCombo(double currentSongPosition);
+	enums::noteHit computeMostRecentNoteHit(std::vector<enums::noteHit> *hits);
+	MostRecentNoteHit mostRecentNoteHit;
 	Uint8 processBgAlpha();
 	Uint32 currentTick, startUpTick;
 	SDL_Renderer *Renderer;
-	SDL_Texture *bg = NULL, *note = NULL, *font = NULL;
+	SDL_Texture *bg = NULL, *note = NULL;
+	TextureWithVariables noteHitTypes[enums::NO_HIT];
 	SDL_Rect timeBar;
 	Instruction instruction;
 	bool initted = false, uiHasFinishedTransitioning = false;
