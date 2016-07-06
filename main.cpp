@@ -21,9 +21,11 @@ int main(int argc, char* args[]) {
 		var.musicSelection_bar_maximized_x = 0.4f;
 		var.musicSelection_bar_minimized_x = 0.1f;
 		var.musicSelection_bar_transition_time = 0.1;
-		var.musicSelection_panel_width = 0.8f;
-		var.musicSelection_panel_separation = 0.1f;
+		var.musicSelection_panel_width = 0.08f;
+		var.musicSelection_panel_separation = 0.08f;
 		var.musicSelection_panel_font = "Noto.otf";
+		var.musicSelection_panel_thickness = 2;
+		var.musicSelection_panel_text_right_padding = 0.01f;
 	}
 	//MainGame variables
 	{
@@ -45,8 +47,8 @@ int main(int argc, char* args[]) {
 		var.note_radius_ratio = (float)(1.0 / 40.0);
 		//Only notes within this buffer time will be blitted
 		var.note_buffer_time = (double)1.0;
-		//Notes later than this buffer time will count as a break
 		var.keyBinds = { SDLK_s,SDLK_d,SDLK_f,SDLK_j,SDLK_k,SDLK_l };
+		//Notes later than this buffer time will count as a break
 		var.okay_hit_buffer_time = 0.3;
 		var.perfect_hit_buffer_time = 0.1;
 	}

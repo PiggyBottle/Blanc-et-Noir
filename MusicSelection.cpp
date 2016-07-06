@@ -16,9 +16,6 @@ MusicSelection::~MusicSelection()
 
 void MusicSelection::init()
 {
-	//Load texture
-	screen = loadTexture("startingmenuscreen.jpg", Renderer);
-
 	std::cout << "In main menu" << std::endl;
 
 	//Generate beatmaps and indices
@@ -28,10 +25,12 @@ void MusicSelection::init()
 
 	//Generate panels
 	calculateMaxNumberOfPanels();
-	currentSelectedMusicIndex = 0;
+	currentSelectedMusicIndex = 1;
 	currentNumberOfKeysSelected = enums::SIX_KEYS;
 	generateListOfPanels();
-	std::cout << listOfPanels.panels.size() << std::endl;
+
+	//Load background
+	bg = loadTexture(beatMaps[currentSelectedMusicIndex].beatMapRootFolder + "/" + beatMaps[currentSelectedMusicIndex].bgFileName, Renderer);
 
 	//To prevent selectionBar from jumping around when just initted
 	mouseX = initVariables.screen_width;
@@ -46,7 +45,7 @@ void MusicSelection::uninit()
 {
 	if (initted)
 	{
-		SDL_DestroyTexture(screen);
+		SDL_DestroyTexture(bg);
 		for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
 		{
 			SDL_DestroyTexture(i->songTitleTexture.texture);
@@ -140,8 +139,39 @@ Instruction MusicSelection::process(SDL_Event e, Instruction nextInstruction)
 	//Compute selection bar x
 	computeSelectionBarX(currentTick);
 
+	//Render background
+	SDL_RenderCopy(Renderer, bg, NULL, NULL);
+
+	//Render panel borders
+	for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
+	{
+
+		//Render highlight
+		SDL_Rect highlightRect = { 0,i->centerY - i->width,selectionBarX,2 * i->width };
+		SDL_SetRenderDrawBlendMode(Renderer,SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(Renderer, 51, 204, 255, 155);
+		SDL_RenderFillRect(Renderer, &highlightRect);
+
+		//Render text
+		float widthToHeightRatio = ((float)i->songTitleTexture.width) / ((float)i->songTitleTexture.height);
+		int textPadding = (int)(initVariables.musicSelection_panel_text_right_padding * ((float)initVariables.screen_width));
+		//Using initVariable's width instead of panel's width because panel's one might change
+		int textPanelHeight = (int)(initVariables.musicSelection_panel_width * ((float)initVariables.screen_height));
+		int textWidth = (int)(widthToHeightRatio * ((float)textPanelHeight));
+		SDL_Rect textRect = { selectionBarX - textWidth - textPadding,i->centerY - textPanelHeight,textWidth,textPanelHeight };
+		SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+		SDL_RenderCopyEx(Renderer, i->songTitleTexture.texture, NULL, &textRect, 0, 0, SDL_FLIP_NONE);
+
+		//Render panel borders
+		SDL_Rect panelRect = { 0,i->centerY-i->width-(initVariables.musicSelection_panel_thickness/2), selectionBarX, initVariables.musicSelection_panel_thickness };
+		SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+		SDL_RenderFillRect(Renderer, &panelRect);
+		panelRect.y = i->centerY + i->width - (initVariables.musicSelection_panel_thickness/2);
+		SDL_RenderFillRect(Renderer, &panelRect);
+	}
+
 	//Render selection bar
-	SDL_Rect selectionBar = {selectionBarX,0,initVariables.musicSelection_bar_thickness,initVariables.screen_height};
+	SDL_Rect selectionBar = {selectionBarX-(initVariables.musicSelection_bar_thickness/2),0,initVariables.musicSelection_bar_thickness,initVariables.screen_height};
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
 	SDL_RenderFillRect(Renderer, &selectionBar);
 
@@ -213,7 +243,7 @@ void MusicSelection::getBeatMaps()
 			{
 				MusicFileSystem fileSystem;
 				fileSystem.beatMapRootFolder = root->path().string();
-				fileSystem.songName = getSongInfo(root->path().string() + "/songinfo.txt");
+				getSongInfo(root->path().string() + "/songinfo.txt",&fileSystem.songName, &fileSystem.bgFileName);
 				fileSystem.difficultyAndKeys = checkForBeatMaps(root->path(), currentBeatMapIndex);
 				beatMaps.push_back(fileSystem);
 				++currentBeatMapIndex;
@@ -274,7 +304,7 @@ std::vector<BeatMapKeyAndDifficulty> MusicSelection::checkForBeatMaps(boost::fil
 	return bMKAD;
 }
 
-std::string MusicSelection::getSongInfo(std::string path)
+void MusicSelection::getSongInfo(std::string path, std::string *songName, std::string *bgFileName)
 {
 	std::ifstream file(path);
 	std::string line;
@@ -284,15 +314,22 @@ std::string MusicSelection::getSongInfo(std::string path)
 		{
 			std::string line2;
 			std::getline(file, line2);
-			return line2;
+			*songName = line2;
+		}
+		else if (line == "#bgfilename")
+		{
+			std::string line2;
+			std::getline(file, line2);
+			*bgFileName = line2;
 		}
 	}
-	return line;
+	return;
 }
 
 void MusicSelection::calculateMaxNumberOfPanels()
 {
-	maxNumberOfPanels = ((int)floor(1.f / (initVariables.musicSelection_panel_separation + initVariables.musicSelection_panel_width))) + 1;
+	maxNumberOfPanels = ((int)floor(1.f / (initVariables.musicSelection_panel_separation + (2.f * initVariables.musicSelection_panel_width)))) + 1;
+	std::cout << maxNumberOfPanels << std::endl;
 }
 
 void MusicSelection::generateListOfPanels()
@@ -322,13 +359,14 @@ void MusicSelection::generateListOfPanels()
 			buffer++;
 		}
 	}
+
 	int indexOfMusicRelativeToBeatMapsWithKey = findIndexOfElementInBeatMapsWithKey(&beatMapsWithKey[currentNumberOfKeysSelected], currentSelectedMusicIndex);
 	listOfPanels.panels.push_back(generateMusicSelectionPanel(currentSelectedMusicIndex));
 	listOfPanels.back = indexOfMusicRelativeToBeatMapsWithKey;
 	listOfPanels.front = indexOfMusicRelativeToBeatMapsWithKey;
 
 	//Generate panels below selected index. If not enough, generate panels above
-	while ((listOfPanels.back+1) < ((int)beatMapsWithKey[currentNumberOfKeysSelected].size()) && listOfPanels.panels.size() < maxNumberOfPanels)
+	while ((listOfPanels.back+1) < ((int)beatMapsWithKey[currentNumberOfKeysSelected].size()) && ((int)listOfPanels.panels.size()) < maxNumberOfPanels)
 	{
 		++listOfPanels.back;
 		listOfPanels.panels.push_back(generateMusicSelectionPanel(beatMapsWithKey[currentNumberOfKeysSelected][listOfPanels.back]));
@@ -340,12 +378,39 @@ void MusicSelection::generateListOfPanels()
 	}
 
 	//Adjust positions
+	float center = initVariables.musicSelection_panel_width;
+	for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
+	{
+		i->centerY = (int)(center * ((float)initVariables.screen_height));
+		center += (initVariables.musicSelection_panel_separation + (2.f * initVariables.musicSelection_panel_width));
+	}
+	assertThatPanelCornersDontCrossLimit();
+}
+
+void MusicSelection::assertThatPanelCornersDontCrossLimit()
+{
+	if (listOfPanels.panels.front().centerY > (initVariables.screen_height / 2))
+	{
+		int amountToDecrease = listOfPanels.panels.front().centerY - (initVariables.screen_height / 2);
+		for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
+		{
+			i->centerY -= amountToDecrease;
+		}
+	}
+	if (listOfPanels.panels.back().centerY < (initVariables.screen_height / 2))
+	{
+		int amountToIncrease = (initVariables.screen_height / 2) - listOfPanels.panels.back().centerY;
+		for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
+		{
+			i->centerY += amountToIncrease;
+		}
+	}
 }
 
 MusicSelectionPanel MusicSelection::generateMusicSelectionPanel(int index)
 {
 	SDL_Color color = { 0,0,0 };
-	MusicSelectionPanel msp = { loadFont(Renderer,initVariables.musicSelection_panel_font,48,beatMaps[index].songName, color), index, 0};
+	MusicSelectionPanel msp = { loadFont(Renderer,initVariables.musicSelection_panel_font,48,beatMaps[index].songName, color), index, 0, (int)(initVariables.musicSelection_panel_width * ((float)initVariables.screen_height)) };
 	return msp;
 }
 

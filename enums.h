@@ -65,6 +65,8 @@ struct InitVariables {
 	float musicSelection_panel_width;
 	float musicSelection_panel_separation;
 	std::string musicSelection_panel_font;
+	int musicSelection_panel_thickness;
+	float musicSelection_panel_text_right_padding;
 	int musicSelection_bar_thickness;
 	int maingame_startup_fadein_time;
 	int mainGame_bg_alpha;
@@ -146,6 +148,7 @@ struct BeatMapKeyAndDifficulty {
 //For MusicSelection
 struct MusicFileSystem {
 	std::string songName;
+	std::string bgFileName;
 	std::string beatMapRootFolder;
 	std::vector<BeatMapKeyAndDifficulty> difficultyAndKeys;
 };
@@ -153,7 +156,8 @@ struct MusicFileSystem {
 struct MusicSelectionPanel {
 	TextureWithVariables songTitleTexture;
 	int musicIndex;
-	int centerX;
+	int centerY;
+	int width;
 };
 
 struct ListOfPanels {

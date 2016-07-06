@@ -19,12 +19,11 @@ private:
 	ListOfPanels listOfPanels;
 	MusicSelectionPanel generateMusicSelectionPanel(int index);
 	std::vector<BeatMapKeyAndDifficulty> checkForBeatMaps(boost::filesystem::path path, int index);
-	void getBeatMaps(), processEvent(SDL_Event e), computeSelectionBarX(double currentTick), calculateMaxNumberOfPanels(), generateListOfPanels();
-	std::string getSongInfo(std::string path);
+	void getBeatMaps(), processEvent(SDL_Event e), computeSelectionBarX(double currentTick), calculateMaxNumberOfPanels(), generateListOfPanels(), assertThatPanelCornersDontCrossLimit();
+	void getSongInfo(std::string path, std::string *songName, std::string *bgFileName);
 	bool initted = false, selectionIsMinimized;
 	int currentSelectedMusicIndex, currentNumberOfKeysSelected, mouseX, mouseY, selectionBarX, maxNumberOfPanels, findIndexOfElementInBeatMapsWithKey(std::vector<int> *vect, int element);
 	double selectionBarTransitionTime;
 
-	//Temporary texture
-	SDL_Texture *screen = NULL;
+	SDL_Texture *bg = NULL;
 };
