@@ -5,6 +5,7 @@
 #include <cmath>
 #include <string>
 #include <algorithm>
+#include <fstream>
 
 
 
@@ -117,6 +118,11 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
 	if (!uiHasFinishedTransitioning) { timeBarY = processTimeBarY(); timeBar.y = timeBarY - ((int)(0.5f * ((float)timeBar.h)));}
 	SDL_RenderFillRect(Renderer, &timeBar);
+	//Unfinalized UI design
+	SDL_Rect topLeft = { 0,0,SCREEN_WIDTH *5/12,SCREEN_HEIGHT/20 };
+	SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
+	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 150);
+	SDL_RenderFillRect(Renderer, &topLeft);
 
 	//Blit combo and hits
 	renderNoteHitAndCombo(currentSongPosition);
@@ -227,7 +233,7 @@ void MainGame::renderNoteHitAndCombo(double currentSongPosition) {
 	modifiedWidth = (int)(((double)width) * timeDeltaPercent);
 	modifiedHeight = (int)(((double)height) * timeDeltaPercent);
 	temp.x = (SCREEN_WIDTH - modifiedWidth) / 2;
-	temp.y = separatorY - (initVariables.combo_offset_height * SCREEN_HEIGHT);
+	temp.y = separatorY - (int)(initVariables.combo_offset_height * ((float)SCREEN_HEIGHT));
 	temp.w = modifiedWidth;
 	temp.h = modifiedHeight;
 	SDL_RenderCopyEx(Renderer, comboTexture.texture, NULL, &temp, 0, 0, SDL_FLIP_NONE);

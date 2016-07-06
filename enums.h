@@ -2,6 +2,7 @@
 #include <SDL.h>
 #include <vector>
 #include <bass.h>
+#include <list>
 
 namespace enums 
 {
@@ -30,6 +31,19 @@ namespace enums
 		BREAK,
 		NO_HIT
 	};
+
+	enum beatMapDifficulty {
+		EASY,
+		NORMAL,
+		HARD,
+		EXTREME
+	};
+
+	enum gameKeys {
+		FOUR_KEYS,
+		SIX_KEYS,
+		TOTAL_KEYS
+	};
 }
 
 struct Instruction {
@@ -45,6 +59,13 @@ struct InitVariables {
 	int screen_width;
 	int screen_fps;
 	int startup_screen_delay;
+	float musicSelection_bar_minimized_x;
+	float musicSelection_bar_maximized_x;
+	double musicSelection_bar_transition_time;
+	float musicSelection_panel_width;
+	float musicSelection_panel_separation;
+	std::string musicSelection_panel_font;
+	int musicSelection_bar_thickness;
 	int maingame_startup_fadein_time;
 	int mainGame_bg_alpha;
 	int mainGame_ui_transition_time;
@@ -115,4 +136,30 @@ struct TextureWithVariables {
 	SDL_Texture *texture;
 	int height;
 	int width;
+};
+
+struct BeatMapKeyAndDifficulty {
+	int numberOfKeys;
+	enums::beatMapDifficulty difficulty;
+};
+
+//For MusicSelection
+struct MusicFileSystem {
+	std::string songName;
+	std::string beatMapRootFolder;
+	std::vector<BeatMapKeyAndDifficulty> difficultyAndKeys;
+};
+
+struct MusicSelectionPanel {
+	TextureWithVariables songTitleTexture;
+	int musicIndex;
+	int centerX;
+};
+
+struct ListOfPanels {
+	std::list<MusicSelectionPanel> panels;
+	//Relative to beatMapsWithKeys
+	int front;
+	//Relative to beatMapsWithKeys
+	int back;
 };

@@ -1,11 +1,12 @@
 #include "MusicSelection.h"
-#include <boost/filesystem.hpp>
+#include <fstream>
 
 
 
-MusicSelection::MusicSelection(SDL_Renderer *gRenderer)
+MusicSelection::MusicSelection(SDL_Renderer *gRenderer, InitVariables iV)
 {
 	this->Renderer = gRenderer;
+	initVariables = iV;
 }
 
 
@@ -17,6 +18,27 @@ void MusicSelection::init()
 {
 	//Load texture
 	screen = loadTexture("startingmenuscreen.jpg", Renderer);
+
+	std::cout << "In main menu" << std::endl;
+
+	//Generate beatmaps and indices
+	std::vector<int> bMWK;
+	for (int i = 0; i < enums::TOTAL_KEYS; i++) { beatMapsWithKey.push_back(bMWK); }
+	getBeatMaps();
+
+	//Generate panels
+	calculateMaxNumberOfPanels();
+	currentSelectedMusicIndex = 0;
+	currentNumberOfKeysSelected = enums::SIX_KEYS;
+	generateListOfPanels();
+	std::cout << listOfPanels.panels.size() << std::endl;
+
+	//To prevent selectionBar from jumping around when just initted
+	mouseX = initVariables.screen_width;
+	selectionIsMinimized = true;
+	selectionBarTransitionTime = 0.0;
+	
+
 	initted = true;
 }
 
@@ -25,6 +47,11 @@ void MusicSelection::uninit()
 	if (initted)
 	{
 		SDL_DestroyTexture(screen);
+		for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
+		{
+			SDL_DestroyTexture(i->songTitleTexture.texture);
+		}
+
 		initted = false;
 	}
 }
@@ -34,8 +61,7 @@ Instruction MusicSelection::process(SDL_Event e, Instruction nextInstruction)
 	if (!initted)
 	{
 		init();
-		std::cout << "In main menu" << std::endl;
-
+		/*
 		boost::filesystem::path p(".\\Music");
 		boost::filesystem::directory_iterator end_itr;
 		std::vector<std::string> songs;
@@ -101,21 +127,237 @@ Instruction MusicSelection::process(SDL_Event e, Instruction nextInstruction)
 				instruction.songDifficulty = difficulties[selection3];
 				uninit();
 				return instruction;
+				
+			}
+		} */
+	}
+
+	double currentTick = ((double)SDL_GetTicks()) / 1000.0;
+
+	//Process event
+	processEvent(e);
+
+	//Compute selection bar x
+	computeSelectionBarX(currentTick);
+
+	//Render selection bar
+	SDL_Rect selectionBar = {selectionBarX,0,initVariables.musicSelection_bar_thickness,initVariables.screen_height};
+	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+	SDL_RenderFillRect(Renderer, &selectionBar);
+
+	instruction.nextState = enums::MUSIC_SELECTION;
+	return instruction;
+
+
+}
+
+void MusicSelection::computeSelectionBarX(double currentTick)
+{
+	if (mouseX < selectionBarX && selectionIsMinimized == true)
+	{
+		selectionBarTransitionTime = currentTick;
+		selectionIsMinimized = false;
+	}
+	else if (mouseX > selectionBarX && selectionIsMinimized == false)
+	{
+		selectionBarTransitionTime = currentTick;
+		selectionIsMinimized = true;
+	}
+
+	if (selectionIsMinimized) 
+	{	
+		if (currentTick - selectionBarTransitionTime > initVariables.musicSelection_bar_transition_time)
+		{
+			selectionBarX = (int)(initVariables.musicSelection_bar_minimized_x * ((float)initVariables.screen_width));
+		}
+		else
+		{
+			selectionBarX = (int)(initVariables.screen_width * ((float)(initVariables.musicSelection_bar_maximized_x + (std::sin(((currentTick - selectionBarTransitionTime) / (initVariables.musicSelection_bar_transition_time)) * 1.5708) * (initVariables.musicSelection_bar_minimized_x - initVariables.musicSelection_bar_maximized_x)))));
+
+		}
+	}
+	else if (!selectionIsMinimized) 
+	{
+		if (currentTick - selectionBarTransitionTime > initVariables.musicSelection_bar_transition_time)
+		{
+			selectionBarX = (int)(initVariables.musicSelection_bar_maximized_x * ((float)initVariables.screen_width));
+		}
+		else
+		{
+			selectionBarX = (int)(initVariables.screen_width * ((float)(initVariables.musicSelection_bar_minimized_x + (std::sin(((currentTick - selectionBarTransitionTime) / (initVariables.musicSelection_bar_transition_time)) * 1.5708) * (initVariables.musicSelection_bar_maximized_x - initVariables.musicSelection_bar_minimized_x)))));
+		}
+	}
+}
+
+void MusicSelection::processEvent(SDL_Event e)
+{
+	if (e.type == SDL_MOUSEMOTION || e.type == SDL_MOUSEBUTTONUP || e.type == SDL_MOUSEBUTTONDOWN)
+	{
+		mouseX = e.motion.x;
+		mouseY = e.motion.y;
+	}
+}
+
+void MusicSelection::getBeatMaps()
+{
+	boost::filesystem::path p(".\\Music");
+	boost::filesystem::directory_iterator end_itr;
+	std::vector<std::string> roots;
+	beatMaps.clear();
+	int currentBeatMapIndex = 0;
+	if (boost::filesystem::exists(p))
+	{
+		for (boost::filesystem::directory_iterator root(p); root != end_itr; ++root)
+		{
+			if (boost::filesystem::is_directory(root->path()) && boost::filesystem::exists(root->path() / "songinfo.txt" ))
+			{
+				MusicFileSystem fileSystem;
+				fileSystem.beatMapRootFolder = root->path().string();
+				fileSystem.songName = getSongInfo(root->path().string() + "/songinfo.txt");
+				fileSystem.difficultyAndKeys = checkForBeatMaps(root->path(), currentBeatMapIndex);
+				beatMaps.push_back(fileSystem);
+				++currentBeatMapIndex;
 			}
 		}
 	}
-	//SDL_RenderCopyEx(Renderer, screen, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
-	//instruction.quit = false;
-	//if (e.type == SDL_KEYDOWN)
-	//{
-	//	//instruction.songToLoad = enums::UNRAVEL;
-	//	instruction.nextState = enums::MAIN_GAME;
-	//	instruction.gameKeys = 4;
-	//	uninit();
-	//}
-	//else
-	//{
-	//	instruction.nextState = enums::MUSIC_SELECTION;
-	//}
-	//return instruction;
+}
+
+std::vector<BeatMapKeyAndDifficulty> MusicSelection::checkForBeatMaps(boost::filesystem::path path, int index)
+{
+	std::vector<BeatMapKeyAndDifficulty> bMKAD;
+	bMKAD.clear();
+	std::vector<std::string> keys = { "4key","6key" };
+	bool fourKeyAlreadyAdded = false, sixKeyAlreadyAdded = false;
+	std::vector<std::string> difficulties = { "Easy","Normal","Hard","Extreme" };
+	for (std::vector<std::string>::iterator i = keys.begin(); i != keys.end(); ++i)
+	{
+		//Check keys
+		if (boost::filesystem::exists(path / *i))
+		{
+			for (std::vector<std::string>::iterator j = difficulties.begin(); j != difficulties.end(); ++j)
+			{
+				if (boost::filesystem::exists(path / *i / *j))
+				{
+					if (!boost::filesystem::is_empty(path / *i / *j))
+					{
+						BeatMapKeyAndDifficulty keyAndDifficulty;
+						if (*i == "4key") 
+						{ 
+							keyAndDifficulty.numberOfKeys = 4;
+							if (!fourKeyAlreadyAdded)
+							{
+								beatMapsWithKey[enums::FOUR_KEYS].push_back(index);
+								fourKeyAlreadyAdded = true;
+							}
+						}
+						else if (*i == "6key") 
+						{ 
+							keyAndDifficulty.numberOfKeys = 6; 
+							if (!sixKeyAlreadyAdded)
+							{
+								beatMapsWithKey[enums::SIX_KEYS].push_back(index); 
+								sixKeyAlreadyAdded = true;
+							}
+						}
+
+						if (*j == "Easy") { keyAndDifficulty.difficulty = enums::EASY; }
+						else if (*j == "Normal") { keyAndDifficulty.difficulty = enums::NORMAL; }
+						else if (*j == "Hard") { keyAndDifficulty.difficulty = enums::HARD; }
+						else if (*j == "Extreme") { keyAndDifficulty.difficulty = enums::EXTREME; }
+
+						bMKAD.push_back(keyAndDifficulty);
+					}
+				}
+			}
+		}
+	}
+	return bMKAD;
+}
+
+std::string MusicSelection::getSongInfo(std::string path)
+{
+	std::ifstream file(path);
+	std::string line;
+	while (std::getline(file, line))
+	{
+		if (line == "#songname")
+		{
+			std::string line2;
+			std::getline(file, line2);
+			return line2;
+		}
+	}
+	return line;
+}
+
+void MusicSelection::calculateMaxNumberOfPanels()
+{
+	maxNumberOfPanels = ((int)floor(1.f / (initVariables.musicSelection_panel_separation + initVariables.musicSelection_panel_width))) + 1;
+}
+
+void MusicSelection::generateListOfPanels()
+{
+	listOfPanels.panels.clear();
+
+	//Ensure that there is at least one song that has respective number of keys
+	if (beatMapsWithKey[currentNumberOfKeysSelected].empty()) { return; }
+
+	//If can't find selected index inside beatmapsWithKey, change it to the nearest valid one
+	if (std::find(beatMapsWithKey[currentNumberOfKeysSelected].begin(), beatMapsWithKey[currentNumberOfKeysSelected].end(), currentSelectedMusicIndex) == beatMapsWithKey[currentNumberOfKeysSelected].end())
+	{
+		int buffer = 1;
+		//This won't go into an infinite loop because we ensured that beatMapsWith selected key isnt empty
+		while (true)
+		{
+			if (std::find(beatMapsWithKey[currentNumberOfKeysSelected].begin(), beatMapsWithKey[currentNumberOfKeysSelected].end(), currentSelectedMusicIndex + buffer) != beatMapsWithKey[currentNumberOfKeysSelected].end())
+			{
+				currentSelectedMusicIndex += buffer;
+				break;
+			}
+			else if (std::find(beatMapsWithKey[currentNumberOfKeysSelected].begin(), beatMapsWithKey[currentNumberOfKeysSelected].end(), currentSelectedMusicIndex - buffer) != beatMapsWithKey[currentNumberOfKeysSelected].end())
+			{
+				currentSelectedMusicIndex -= buffer;
+				break;
+			}
+			buffer++;
+		}
+	}
+	int indexOfMusicRelativeToBeatMapsWithKey = findIndexOfElementInBeatMapsWithKey(&beatMapsWithKey[currentNumberOfKeysSelected], currentSelectedMusicIndex);
+	listOfPanels.panels.push_back(generateMusicSelectionPanel(currentSelectedMusicIndex));
+	listOfPanels.back = indexOfMusicRelativeToBeatMapsWithKey;
+	listOfPanels.front = indexOfMusicRelativeToBeatMapsWithKey;
+
+	//Generate panels below selected index. If not enough, generate panels above
+	while ((listOfPanels.back+1) < ((int)beatMapsWithKey[currentNumberOfKeysSelected].size()) && listOfPanels.panels.size() < maxNumberOfPanels)
+	{
+		++listOfPanels.back;
+		listOfPanels.panels.push_back(generateMusicSelectionPanel(beatMapsWithKey[currentNumberOfKeysSelected][listOfPanels.back]));
+	}
+	while (listOfPanels.front != 0 && ((int)listOfPanels.panels.size()) < maxNumberOfPanels)
+	{
+		--listOfPanels.front;
+		listOfPanels.panels.push_front(generateMusicSelectionPanel(beatMapsWithKey[currentNumberOfKeysSelected][listOfPanels.front]));
+	}
+
+	//Adjust positions
+}
+
+MusicSelectionPanel MusicSelection::generateMusicSelectionPanel(int index)
+{
+	SDL_Color color = { 0,0,0 };
+	MusicSelectionPanel msp = { loadFont(Renderer,initVariables.musicSelection_panel_font,48,beatMaps[index].songName, color), index, 0};
+	return msp;
+}
+
+int MusicSelection::findIndexOfElementInBeatMapsWithKey(std::vector<int> *vect, int element)
+{
+	//Using linear search at the moment. Do improve searching algorithm in the future
+	for (size_t i = 0; i < vect->size(); i++)
+	{
+		if ((*vect)[i] == element)
+		{
+			return (int)i;
+		}
+	}
+	return -1;
 }

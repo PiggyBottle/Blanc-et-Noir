@@ -83,7 +83,7 @@ bool Game::init()
 
 	//Load Game States
 	states[enums::STARTING_SCREEN] = new StartingScreen(gRenderer, initVariables.startup_screen_delay);
-	states[enums::MUSIC_SELECTION] = new MusicSelection(gRenderer);
+	states[enums::MUSIC_SELECTION] = new MusicSelection(gRenderer, initVariables);
 	states[enums::MAIN_GAME] = new MainGame(gRenderer, initVariables);
 
 
