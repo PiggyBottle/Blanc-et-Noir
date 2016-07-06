@@ -1,4 +1,5 @@
 #include "MusicSelection.h"
+#include <bass.h>
 #include <fstream>
 
 
@@ -30,10 +31,17 @@ void MusicSelection::init()
 	generateListOfPanels();
 
 	//Load background
-	bg = loadTexture(beatMaps[currentSelectedMusicIndex].beatMapRootFolder + "/" + beatMaps[currentSelectedMusicIndex].bgFileName, Renderer);
+	bg = loadTexture(beatMaps[currentSelectedMusicIndex].beatMapRootFolder + '/' + beatMaps[currentSelectedMusicIndex].bgFileName, Renderer);
+	//Load music
+	std::string songToLoad = beatMaps[currentSelectedMusicIndex].beatMapRootFolder + '/' + beatMaps[currentSelectedMusicIndex].musicFileName;
+	bgm = BASS_StreamCreateFile(false, songToLoad.c_str(), 0, 0, 0);
+	checkThatMusicIsPlayingWithinRange();
 
 	//To prevent selectionBar from jumping around when just initted
 	mouseX = initVariables.screen_width;
+	mouseIsBeingDragged = false;
+	mouseIsClicked = false;
+	panelAreaIsClicked = false;
 	selectionIsMinimized = true;
 	selectionBarTransitionTime = 0.0;
 	
@@ -50,6 +58,8 @@ void MusicSelection::uninit()
 		{
 			SDL_DestroyTexture(i->songTitleTexture.texture);
 		}
+
+		BASS_StreamFree(bgm);
 
 		initted = false;
 	}
@@ -139,13 +149,18 @@ Instruction MusicSelection::process(SDL_Event e, Instruction nextInstruction)
 	//Compute selection bar x
 	computeSelectionBarX(currentTick);
 
+	//Compute panel y
+	computePanelY();
+
+	//Repeat music if necessary
+	checkThatMusicIsPlayingWithinRange();
+
 	//Render background
 	SDL_RenderCopy(Renderer, bg, NULL, NULL);
 
-	//Render panel borders
+	//Render panels
 	for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
 	{
-
 		//Render highlight
 		SDL_Rect highlightRect = { 0,i->centerY - i->width,selectionBarX,2 * i->width };
 		SDL_SetRenderDrawBlendMode(Renderer,SDL_BLENDMODE_BLEND);
@@ -219,12 +234,56 @@ void MusicSelection::computeSelectionBarX(double currentTick)
 	}
 }
 
+void MusicSelection::computePanelY()
+{
+	if (!(panelAreaIsClicked && mouseIsClicked && mouseIsBeingDragged)) { return; }
+	
+	int mouseDelta = mouseY - lastClickedY;
+	for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
+	{
+		i->centerY = i->previousCenterY + mouseDelta;
+	}
+	assertThatPanelCornersDontCrossLimit();
+}
+
 void MusicSelection::processEvent(SDL_Event e)
 {
 	if (e.type == SDL_MOUSEMOTION || e.type == SDL_MOUSEBUTTONUP || e.type == SDL_MOUSEBUTTONDOWN)
 	{
 		mouseX = e.motion.x;
 		mouseY = e.motion.y;
+	}
+
+	if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT)
+	{
+		lastClickedX = mouseX;
+		lastClickedY = mouseY;
+		mouseIsClicked = true;
+		if (mouseX < selectionBarX) { panelAreaIsClicked = true; backupPanelY(); }
+		else { panelAreaIsClicked = false; }
+	}
+	else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT)
+	{
+		mouseIsBeingDragged = false;
+		mouseIsClicked = false;
+		panelAreaIsClicked = false;
+	}
+	else if (e.type == SDL_MOUSEMOTION)
+	{
+		if (mouseIsClicked)
+		{
+			//To prevent undefined behaviour when mouse is dragged into/out of selection bar
+			if ((panelAreaIsClicked && mouseX > selectionBarX) || (!panelAreaIsClicked && mouseX < selectionBarX))
+			{
+				mouseIsBeingDragged = false;
+				mouseIsClicked = false;
+				panelAreaIsClicked = false;
+			}
+			else if ((panelAreaIsClicked && mouseX < selectionBarX) || (!panelAreaIsClicked && mouseX > selectionBarX))
+			{
+				mouseIsBeingDragged = true;
+			}
+		}
 	}
 }
 
@@ -243,7 +302,7 @@ void MusicSelection::getBeatMaps()
 			{
 				MusicFileSystem fileSystem;
 				fileSystem.beatMapRootFolder = root->path().string();
-				getSongInfo(root->path().string() + "/songinfo.txt",&fileSystem.songName, &fileSystem.bgFileName);
+				getSongInfo(root->path().string() + "/songinfo.txt", &fileSystem);
 				fileSystem.difficultyAndKeys = checkForBeatMaps(root->path(), currentBeatMapIndex);
 				beatMaps.push_back(fileSystem);
 				++currentBeatMapIndex;
@@ -304,7 +363,7 @@ std::vector<BeatMapKeyAndDifficulty> MusicSelection::checkForBeatMaps(boost::fil
 	return bMKAD;
 }
 
-void MusicSelection::getSongInfo(std::string path, std::string *songName, std::string *bgFileName)
+void MusicSelection::getSongInfo(std::string path, MusicFileSystem *fileSystem)
 {
 	std::ifstream file(path);
 	std::string line;
@@ -314,13 +373,27 @@ void MusicSelection::getSongInfo(std::string path, std::string *songName, std::s
 		{
 			std::string line2;
 			std::getline(file, line2);
-			*songName = line2;
+			fileSystem->songName = line2;
 		}
 		else if (line == "#bgfilename")
 		{
 			std::string line2;
 			std::getline(file, line2);
-			*bgFileName = line2;
+			fileSystem->bgFileName = line2;
+		}
+		else if (line == "#musicfilename")
+		{
+			std::string line2;
+			std::getline(file, line2);
+			fileSystem->musicFileName = line2;
+		}
+		else if (line == "#musicstartend")
+		{
+			std::string line2;
+			std::getline(file, line2);
+			fileSystem->musicStartPosition = std::stod(line2);
+			std::getline(file, line2);
+			fileSystem->musicEndPosition = std::stod(line2);
 		}
 	}
 	return;
@@ -329,7 +402,6 @@ void MusicSelection::getSongInfo(std::string path, std::string *songName, std::s
 void MusicSelection::calculateMaxNumberOfPanels()
 {
 	maxNumberOfPanels = ((int)floor(1.f / (initVariables.musicSelection_panel_separation + (2.f * initVariables.musicSelection_panel_width)))) + 1;
-	std::cout << maxNumberOfPanels << std::endl;
 }
 
 void MusicSelection::generateListOfPanels()
@@ -410,7 +482,7 @@ void MusicSelection::assertThatPanelCornersDontCrossLimit()
 MusicSelectionPanel MusicSelection::generateMusicSelectionPanel(int index)
 {
 	SDL_Color color = { 0,0,0 };
-	MusicSelectionPanel msp = { loadFont(Renderer,initVariables.musicSelection_panel_font,48,beatMaps[index].songName, color), index, 0, (int)(initVariables.musicSelection_panel_width * ((float)initVariables.screen_height)) };
+	MusicSelectionPanel msp = { loadFont(Renderer,initVariables.musicSelection_panel_font,48,beatMaps[index].songName, color), index, 0, 0, (int)(initVariables.musicSelection_panel_width * ((float)initVariables.screen_height)) };
 	return msp;
 }
 
@@ -425,4 +497,22 @@ int MusicSelection::findIndexOfElementInBeatMapsWithKey(std::vector<int> *vect, 
 		}
 	}
 	return -1;
+}
+
+void MusicSelection::checkThatMusicIsPlayingWithinRange()
+{
+	double currentPosition = BASS_ChannelBytes2Seconds(bgm, (BASS_ChannelGetPosition(bgm, BASS_POS_BYTE)));
+	if (currentPosition > beatMaps[currentSelectedMusicIndex].musicEndPosition || currentPosition < beatMaps[currentSelectedMusicIndex].musicStartPosition)
+	{
+		BASS_ChannelSetPosition(bgm, BASS_ChannelSeconds2Bytes(bgm, beatMaps[currentSelectedMusicIndex].musicStartPosition), BASS_POS_BYTE);
+		BASS_ChannelPlay(bgm, false);
+	}
+}
+
+void MusicSelection::backupPanelY()
+{
+	for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
+	{
+		i->previousCenterY = i->centerY;
+	}
 }

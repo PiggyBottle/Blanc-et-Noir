@@ -149,6 +149,9 @@ struct BeatMapKeyAndDifficulty {
 struct MusicFileSystem {
 	std::string songName;
 	std::string bgFileName;
+	std::string musicFileName;
+	double musicStartPosition;
+	double musicEndPosition;
 	std::string beatMapRootFolder;
 	std::vector<BeatMapKeyAndDifficulty> difficultyAndKeys;
 };
@@ -157,6 +160,8 @@ struct MusicSelectionPanel {
 	TextureWithVariables songTitleTexture;
 	int musicIndex;
 	int centerY;
+	//Used when dragging panels
+	int previousCenterY;
 	int width;
 };
 
