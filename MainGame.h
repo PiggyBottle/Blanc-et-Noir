@@ -20,7 +20,7 @@ private:
 	Uint8 processBgAlpha();
 	Uint32 currentTick, startUpTick;
 	SDL_Renderer *Renderer;
-	SDL_Texture *bg = NULL, *note = NULL;
+	TextureWithVariables bg, note;
 	TextureWithVariables noteHitTypes[enums::NO_HIT];
 	SDL_Rect timeBar;
 	Instruction instruction;

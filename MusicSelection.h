@@ -12,19 +12,21 @@ public:
 	Instruction process(SDL_Event e, Instruction nextInstruction);
 private:
 	SDL_Renderer *Renderer = NULL;
-	Instruction instruction;
+	Instruction instruction, generateInstructionForMainGame();
 	InitVariables initVariables;
 	std::vector<MusicFileSystem> beatMaps;
 	std::vector<std::vector<int>> beatMapsWithKey;
 	ListOfPanels listOfPanels;
+	std::vector<MusicSelectionClickableButton> clickableButtons;
+	enums::beatMapDifficulty currentSelectedDifficulty;
 	MusicSelectionPanel generateMusicSelectionPanel(int index);
 	std::vector<BeatMapKeyAndDifficulty> checkForBeatMaps(boost::filesystem::path path, int index);
-	void getBeatMaps(), processEvent(SDL_Event e), computeSelectionBarX(double currentTick), calculateMaxNumberOfPanels(), generateListOfPanels(), assertThatPanelCornersDontCrossLimit(), checkThatMusicIsPlayingWithinRange(), computePanelY(), backupPanelY();
-	void getSongInfo(std::string path, MusicFileSystem *fileSystem);
-	bool initted = false, selectionIsMinimized, mouseIsBeingDragged, mouseIsClicked, panelAreaIsClicked;
+	void getBeatMaps(), processEvent(SDL_Event e), computeSelectionBarX(double currentTick), calculateMaxNumberOfPanels(), generateListOfPanels(), generateClickableButtons(),assertThatPanelCornersDontCrossLimit(), checkThatMusicIsPlayingWithinRange(), checkIfClickableButtonIsPressed(), processButtonClick(MusicSelectionClickableButton *button), renderClickableButtons(),computePanelY(), backupPanelY();
+	void getSongInfo(std::string path, MusicFileSystem *fileSystem), selectPanel(), freeAndChangebgm(), freeAndChangebg(), checkThatDifficultyIsAvailableInNewSong();
+	bool initted = false, selectionIsMinimized, mouseIsBeingDragged, mouseIsClicked, panelAreaIsClicked, proceedToMainGame;
 	int currentSelectedMusicIndex, currentNumberOfKeysSelected, mouseX, mouseY, lastClickedX, lastClickedY, selectionBarX, maxNumberOfPanels, findIndexOfElementInBeatMapsWithKey(std::vector<int> *vect, int element);
 	double selectionBarTransitionTime;
 
-	SDL_Texture *bg = NULL;
+	TextureWithVariables bg;
 	unsigned long bgm;
 };

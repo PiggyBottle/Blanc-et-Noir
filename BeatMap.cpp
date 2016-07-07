@@ -30,7 +30,7 @@ BeatMap::~BeatMap()
 
 std::vector<BeatPath> BeatMap::getBeatPath()
 {
-	boost::filesystem::path p("Music\\" + instruction.songToLoad + "\\" + std::to_string(instruction.gameKeys) + "key\\" + instruction.songDifficulty);
+	boost::filesystem::path p(instruction.beatMapRootFolder + "\\" + std::to_string(instruction.gameKeys) + "key\\" + instruction.songDifficulty);
 	boost::filesystem::directory_iterator end_itr;
 	std::vector<std::string> pathDirectories;
 	for (boost::filesystem::directory_iterator itr(p); itr != end_itr; ++itr)

@@ -28,13 +28,17 @@ void MusicSelection::init()
 	calculateMaxNumberOfPanels();
 	currentSelectedMusicIndex = 1;
 	currentNumberOfKeysSelected = enums::SIX_KEYS;
+	currentSelectedDifficulty = enums::EASY;
 	generateListOfPanels();
 
+	//Generate buttons
+	generateClickableButtons();
+
+
 	//Load background
-	bg = loadTexture(beatMaps[currentSelectedMusicIndex].beatMapRootFolder + '/' + beatMaps[currentSelectedMusicIndex].bgFileName, Renderer);
+	freeAndChangebg();
 	//Load music
-	std::string songToLoad = beatMaps[currentSelectedMusicIndex].beatMapRootFolder + '/' + beatMaps[currentSelectedMusicIndex].musicFileName;
-	bgm = BASS_StreamCreateFile(false, songToLoad.c_str(), 0, 0, 0);
+	freeAndChangebgm();
 	checkThatMusicIsPlayingWithinRange();
 
 	//To prevent selectionBar from jumping around when just initted
@@ -45,7 +49,7 @@ void MusicSelection::init()
 	selectionIsMinimized = true;
 	selectionBarTransitionTime = 0.0;
 	
-
+	proceedToMainGame = false;
 	initted = true;
 }
 
@@ -53,10 +57,15 @@ void MusicSelection::uninit()
 {
 	if (initted)
 	{
-		SDL_DestroyTexture(bg);
+		SDL_DestroyTexture(bg.texture);
 		for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
 		{
 			SDL_DestroyTexture(i->songTitleTexture.texture);
+		}
+		for (std::vector<MusicSelectionClickableButton>::iterator i = clickableButtons.begin(); i != clickableButtons.end(); ++i)
+		{
+			SDL_DestroyTexture(i->fontTexture.texture);
+			SDL_DestroyTexture(i->backgroundTexture.texture);
 		}
 
 		BASS_StreamFree(bgm);
@@ -70,81 +79,15 @@ Instruction MusicSelection::process(SDL_Event e, Instruction nextInstruction)
 	if (!initted)
 	{
 		init();
-		/*
-		boost::filesystem::path p(".\\Music");
-		boost::filesystem::directory_iterator end_itr;
-		std::vector<std::string> songs;
-		if (boost::filesystem::exists(p))
-		{
-			while (true) {
-				for (boost::filesystem::directory_iterator song(p); song != end_itr; ++song)
-				{
-					if (boost::filesystem::is_directory(song->path()))
-					{
-						songs.push_back(song->path().filename().string());
-					}
-				}
-
-				for (std::vector<std::string>::iterator i = songs.begin(); i != songs.end(); ++i)
-				{
-					std::cout << *i << std::endl;
-				}
-				int selection;
-				std::cin >> selection;
-				if (boost::filesystem::is_empty(p / songs[selection])) { continue; }
-				std::vector<std::string> keys;
-				for (boost::filesystem::directory_iterator key(p / songs[selection]); key != end_itr; ++key)
-				{
-					if (boost::filesystem::is_directory(key->path()))
-					{
-						if (key->path().filename().string() == "4key" || key->path().filename().string() == "6key" || key->path().filename().string() == "8key")
-						{
-							keys.push_back(key->path().filename().string());
-						}
-					}
-				}
-				for (auto i = keys.begin(); i != keys.end(); ++i)
-				{
-					std::cout << *i << std::endl;
-				}
-				int selection2;
-				std::cin >> selection2;
-				if (boost::filesystem::is_empty(p / songs[selection] / keys[selection2])) { continue; }
-				std::vector<std::string> difficulties;
-				for (boost::filesystem::directory_iterator difficulty(p / songs[selection] / keys[selection2]); difficulty != end_itr; ++difficulty)
-				{
-					if (boost::filesystem::is_directory(difficulty->path()))
-					{
-						if (difficulty->path().filename().string() == "Easy" || difficulty->path().filename().string() == "Normal" || difficulty->path().filename().string() == "Hard" || difficulty->path().filename().string() == "Extreme")
-						{
-							difficulties.push_back(difficulty->path().filename().string());
-						}
-					}
-				}
-				for (auto i = difficulties.begin(); i != difficulties.end(); ++i)
-				{
-					std::cout << *i << std::endl;
-				}
-				int selection3;
-				std::cin >> selection3;
-				if (boost::filesystem::is_empty(p / songs[selection] / keys[selection2] / difficulties[selection3])) { continue; }
-				instruction.quit = false;
-				instruction.nextState = enums::MAIN_GAME;
-				instruction.songToLoad = songs[selection];
-				if (keys[selection2] == "4key") { instruction.gameKeys = 4; }
-				else if (keys[selection2] == "6key") { instruction.gameKeys = 6; }
-				instruction.songDifficulty = difficulties[selection3];
-				uninit();
-				return instruction;
-				
-			}
-		} */
 	}
 
 	double currentTick = ((double)SDL_GetTicks()) / 1000.0;
 
 	//Process event
 	processEvent(e);
+
+	//Check if can proceed to main game
+	if (proceedToMainGame) { uninit();  return generateInstructionForMainGame(); }
 
 	//Compute selection bar x
 	computeSelectionBarX(currentTick);
@@ -156,7 +99,10 @@ Instruction MusicSelection::process(SDL_Event e, Instruction nextInstruction)
 	checkThatMusicIsPlayingWithinRange();
 
 	//Render background
-	SDL_RenderCopy(Renderer, bg, NULL, NULL);
+	SDL_RenderCopy(Renderer, bg.texture, NULL, NULL);
+
+	//Render clickable buttons
+	renderClickableButtons();
 
 	//Render panels
 	for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
@@ -260,10 +206,13 @@ void MusicSelection::processEvent(SDL_Event e)
 		lastClickedY = mouseY;
 		mouseIsClicked = true;
 		if (mouseX < selectionBarX) { panelAreaIsClicked = true; backupPanelY(); }
-		else { panelAreaIsClicked = false; }
+		else { panelAreaIsClicked = false; checkIfClickableButtonIsPressed(); }
 	}
 	else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT)
 	{
+		//Check if the click happened in the panel area
+		if (mouseIsClicked && (!mouseIsBeingDragged) && mouseX < selectionBarX) { selectPanel(); }
+
 		mouseIsBeingDragged = false;
 		mouseIsClicked = false;
 		panelAreaIsClicked = false;
@@ -332,7 +281,7 @@ std::vector<BeatMapKeyAndDifficulty> MusicSelection::checkForBeatMaps(boost::fil
 						BeatMapKeyAndDifficulty keyAndDifficulty;
 						if (*i == "4key") 
 						{ 
-							keyAndDifficulty.numberOfKeys = 4;
+							keyAndDifficulty.numberOfKeys = enums::FOUR_KEYS;
 							if (!fourKeyAlreadyAdded)
 							{
 								beatMapsWithKey[enums::FOUR_KEYS].push_back(index);
@@ -341,7 +290,7 @@ std::vector<BeatMapKeyAndDifficulty> MusicSelection::checkForBeatMaps(boost::fil
 						}
 						else if (*i == "6key") 
 						{ 
-							keyAndDifficulty.numberOfKeys = 6; 
+							keyAndDifficulty.numberOfKeys = enums::SIX_KEYS; 
 							if (!sixKeyAlreadyAdded)
 							{
 								beatMapsWithKey[enums::SIX_KEYS].push_back(index); 
@@ -353,7 +302,6 @@ std::vector<BeatMapKeyAndDifficulty> MusicSelection::checkForBeatMaps(boost::fil
 						else if (*j == "Normal") { keyAndDifficulty.difficulty = enums::NORMAL; }
 						else if (*j == "Hard") { keyAndDifficulty.difficulty = enums::HARD; }
 						else if (*j == "Extreme") { keyAndDifficulty.difficulty = enums::EXTREME; }
-
 						bMKAD.push_back(keyAndDifficulty);
 					}
 				}
@@ -402,6 +350,60 @@ void MusicSelection::getSongInfo(std::string path, MusicFileSystem *fileSystem)
 void MusicSelection::calculateMaxNumberOfPanels()
 {
 	maxNumberOfPanels = ((int)floor(1.f / (initVariables.musicSelection_panel_separation + (2.f * initVariables.musicSelection_panel_width)))) + 1;
+}
+
+void MusicSelection::generateClickableButtons()
+{
+	MusicSelectionClickableButton button;
+	
+	//Generate number of keys buttons
+	;
+
+	//Generate start game button
+	button.x = (int)(((float)initVariables.screen_width) * initVariables.musicSelection_startGame_button_x);
+	button.y = (int)(((float)initVariables.screen_height) * initVariables.musicSelection_startGame_button_y);
+	button.width = (int)(((float)initVariables.screen_width) * initVariables.musicSelection_startGame_button_width);
+	button.height = (int)(((float)initVariables.screen_height) * initVariables.musicSelection_startGame_button_height);
+	button.backgroundTexture.texture = NULL;
+	button.text = "START";
+	SDL_Color color = { 255,255,255 };
+	button.fontTexture = loadFont(Renderer, initVariables.musicSelection_font, 48, button.text, color);
+	clickableButtons.push_back(button);
+}
+
+void MusicSelection::checkIfClickableButtonIsPressed()
+{
+	for (std::vector<MusicSelectionClickableButton>::iterator i = clickableButtons.begin(); i != clickableButtons.end(); ++i)
+	{
+		if (mouseX > i->x && mouseX < (i->x + i->width) && mouseY > i->y && mouseY < (i->y + i->height))
+		{
+			processButtonClick(&(*i));
+		}
+	}
+}
+
+void MusicSelection::processButtonClick(MusicSelectionClickableButton *button)
+{
+	if (button->text == "START") { proceedToMainGame = true; }
+}
+
+void MusicSelection::renderClickableButtons()
+{
+	for (std::vector<MusicSelectionClickableButton>::iterator i = clickableButtons.begin(); i != clickableButtons.end(); ++i)
+	{
+		if (i->backgroundTexture.texture == NULL)
+		{
+			SDL_Rect backgroundRect = { i->x, i->y, i->width, i->height };
+			SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 155);
+			SDL_RenderFillRect(Renderer, &backgroundRect);
+		}
+		if (i->fontTexture.texture != NULL)
+		{
+			SDL_Rect textRect = { i->x, i->y, i->width, i->height };
+			SDL_RenderCopy(Renderer, i->fontTexture.texture, NULL, &textRect);
+		}
+			
+	}
 }
 
 void MusicSelection::generateListOfPanels()
@@ -457,6 +459,9 @@ void MusicSelection::generateListOfPanels()
 		center += (initVariables.musicSelection_panel_separation + (2.f * initVariables.musicSelection_panel_width));
 	}
 	assertThatPanelCornersDontCrossLimit();
+
+	//Check that difficulty exists
+	checkThatDifficultyIsAvailableInNewSong();
 }
 
 void MusicSelection::assertThatPanelCornersDontCrossLimit()
@@ -482,7 +487,7 @@ void MusicSelection::assertThatPanelCornersDontCrossLimit()
 MusicSelectionPanel MusicSelection::generateMusicSelectionPanel(int index)
 {
 	SDL_Color color = { 0,0,0 };
-	MusicSelectionPanel msp = { loadFont(Renderer,initVariables.musicSelection_panel_font,48,beatMaps[index].songName, color), index, 0, 0, (int)(initVariables.musicSelection_panel_width * ((float)initVariables.screen_height)) };
+	MusicSelectionPanel msp = { loadFont(Renderer,initVariables.musicSelection_font,48,beatMaps[index].songName, color), index, 0, 0, (int)(initVariables.musicSelection_panel_width * ((float)initVariables.screen_height)) };
 	return msp;
 }
 
@@ -499,6 +504,24 @@ int MusicSelection::findIndexOfElementInBeatMapsWithKey(std::vector<int> *vect, 
 	return -1;
 }
 
+void MusicSelection::selectPanel()
+{
+	//Check that click occured inside a panel that isn't the currently selected panel
+	for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
+	{
+		if (mouseY < i->centerY + i->width && mouseY > i->centerY - i->width && i->musicIndex != currentSelectedMusicIndex)
+		{
+			//Register the change
+			currentSelectedMusicIndex = i->musicIndex;
+			freeAndChangebgm();
+			freeAndChangebg();
+			checkThatDifficultyIsAvailableInNewSong();
+
+			break;
+		}
+	}
+}
+
 void MusicSelection::checkThatMusicIsPlayingWithinRange()
 {
 	double currentPosition = BASS_ChannelBytes2Seconds(bgm, (BASS_ChannelGetPosition(bgm, BASS_POS_BYTE)));
@@ -509,10 +532,70 @@ void MusicSelection::checkThatMusicIsPlayingWithinRange()
 	}
 }
 
+void MusicSelection::checkThatDifficultyIsAvailableInNewSong()
+{
+	BeatMapKeyAndDifficulty bMKAD;
+	bMKAD.difficulty = currentSelectedDifficulty;
+	bMKAD.numberOfKeys = currentNumberOfKeysSelected;
+	
+	enums::beatMapDifficulty easiestKnownDifficulty = enums::EXTREME;
+	for (std::vector<BeatMapKeyAndDifficulty>::iterator i = beatMaps[currentSelectedMusicIndex].difficultyAndKeys.begin(); i != beatMaps[currentSelectedMusicIndex].difficultyAndKeys.end(); ++i)
+	{
+		if (i->numberOfKeys == currentNumberOfKeysSelected)
+		{
+			if (i->difficulty == currentSelectedDifficulty) { return; }
+			else if (i->difficulty < easiestKnownDifficulty) { easiestKnownDifficulty = i->difficulty; }
+		}
+	}
+	currentSelectedDifficulty = easiestKnownDifficulty;
+}
+
 void MusicSelection::backupPanelY()
 {
 	for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
 	{
 		i->previousCenterY = i->centerY;
 	}
+}
+
+void MusicSelection::freeAndChangebgm()
+{
+	BASS_StreamFree(bgm);
+	std::string songToLoad = beatMaps[currentSelectedMusicIndex].beatMapRootFolder + '/' + beatMaps[currentSelectedMusicIndex].musicFileName;
+	bgm = BASS_StreamCreateFile(false, songToLoad.c_str(), 0, 0, 0);
+}
+
+void MusicSelection::freeAndChangebg()
+{
+	SDL_DestroyTexture(bg.texture);
+	bg = loadTexture(beatMaps[currentSelectedMusicIndex].beatMapRootFolder + '/' + beatMaps[currentSelectedMusicIndex].bgFileName, Renderer);
+}
+
+Instruction MusicSelection::generateInstructionForMainGame()
+{
+	Instruction instruction;
+	instruction.quit = false;
+	switch (currentNumberOfKeysSelected)
+	{
+	case enums::FOUR_KEYS:
+		instruction.gameKeys = 4; break;
+	case enums::SIX_KEYS:
+		instruction.gameKeys = 6; break;
+	}
+	switch (currentSelectedDifficulty)
+	{
+	case enums::EASY:
+		instruction.songDifficulty = "Easy"; break;
+	case enums::NORMAL:
+		instruction.songDifficulty = "Normal"; break;
+	case enums::HARD:
+		instruction.songDifficulty = "Hard"; break;
+	case enums::EXTREME:
+		instruction.songDifficulty = "Extreme"; break;
+	}
+	instruction.beatMapSongToLoad = beatMaps[currentSelectedMusicIndex].musicFileName;
+	instruction.beatMapBGtoLoad = beatMaps[currentSelectedMusicIndex].bgFileName;
+	instruction.beatMapRootFolder = beatMaps[currentSelectedMusicIndex].beatMapRootFolder;
+	instruction.nextState = enums::MAIN_GAME;
+	return instruction;
 }

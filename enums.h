@@ -2,6 +2,7 @@
 #include <SDL.h>
 #include <vector>
 #include <bass.h>
+#include <functional>
 #include <list>
 
 namespace enums 
@@ -36,9 +37,10 @@ namespace enums
 		EASY,
 		NORMAL,
 		HARD,
-		EXTREME
+		EXTREME,
+		TOTAL_DIFFICULTIES
 	};
-
+	//Used within MusicSelection exclusively at the moment
 	enum gameKeys {
 		FOUR_KEYS,
 		SIX_KEYS,
@@ -49,9 +51,11 @@ namespace enums
 struct Instruction {
 	int nextState;
 	bool quit = false;
-	std::string songToLoad;
+	std::string beatMapSongToLoad;
 	int gameKeys = 4;
 	std::string songDifficulty;
+	std::string beatMapRootFolder;
+	std::string beatMapBGtoLoad;
 };
 
 struct InitVariables {
@@ -64,10 +68,14 @@ struct InitVariables {
 	double musicSelection_bar_transition_time;
 	float musicSelection_panel_width;
 	float musicSelection_panel_separation;
-	std::string musicSelection_panel_font;
+	std::string musicSelection_font;
 	int musicSelection_panel_thickness;
 	float musicSelection_panel_text_right_padding;
 	int musicSelection_bar_thickness;
+	float musicSelection_startGame_button_x;
+	float musicSelection_startGame_button_y;
+	float musicSelection_startGame_button_width;
+	float musicSelection_startGame_button_height;
 	int maingame_startup_fadein_time;
 	int mainGame_bg_alpha;
 	int mainGame_ui_transition_time;
@@ -171,4 +179,14 @@ struct ListOfPanels {
 	int front;
 	//Relative to beatMapsWithKeys
 	int back;
+};
+
+struct MusicSelectionClickableButton {
+	int x;
+	int y;
+	int width;
+	int height;
+	std::string text;
+	TextureWithVariables backgroundTexture;
+	TextureWithVariables fontTexture;
 };

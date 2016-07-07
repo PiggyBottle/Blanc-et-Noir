@@ -23,9 +23,13 @@ int main(int argc, char* args[]) {
 		var.musicSelection_bar_transition_time = 0.1;
 		var.musicSelection_panel_width = 0.08f;
 		var.musicSelection_panel_separation = 0.08f;
-		var.musicSelection_panel_font = "Noto.otf";
+		var.musicSelection_font = "Noto.otf";
 		var.musicSelection_panel_thickness = 2;
 		var.musicSelection_panel_text_right_padding = 0.01f;
+		var.musicSelection_startGame_button_x = 0.8f;
+		var.musicSelection_startGame_button_y = 0.8f;
+		var.musicSelection_startGame_button_width = 0.1f;
+		var.musicSelection_startGame_button_height = 0.1f;
 	}
 	//MainGame variables
 	{

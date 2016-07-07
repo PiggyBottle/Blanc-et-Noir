@@ -32,9 +32,9 @@ void MainGame::init(Instruction nextInstruction)
 	uiHasFinishedTransitioning = false;
 	
 	//Load Textures
-	bg = loadTexture("Music/"+nextInstruction.songToLoad + "/bg_blurred.jpg", Renderer);
-	if (bg == NULL) { std::cout << "Error loading texture" << std::endl; }
-	SDL_SetTextureBlendMode(bg, SDL_BLENDMODE_BLEND);
+	bg = loadTexture((nextInstruction.beatMapRootFolder + '/' + nextInstruction.beatMapBGtoLoad).c_str(), Renderer);
+	if (bg.texture == NULL) { std::cout << "Error loading texture" << std::endl; }
+	SDL_SetTextureBlendMode(bg.texture, SDL_BLENDMODE_BLEND);
 	note = loadTexture("beatnote.png", Renderer);
 
 	//Load noteHits
@@ -47,10 +47,10 @@ void MainGame::init(Instruction nextInstruction)
 	}
 
 	//Load Beat Map
-	beatMap = BeatMap(Renderer, initVariables, nextInstruction,note);
+	beatMap = BeatMap(Renderer, initVariables, nextInstruction,note.texture);
 
 	//Load music/SFX
-	std::string songToLoad = "Music/" + nextInstruction.songToLoad + '/' + nextInstruction.songToLoad + ".mp3";
+	std::string songToLoad = nextInstruction.beatMapRootFolder + '/' + nextInstruction.beatMapSongToLoad;
 	//Last argument in this function should be replaced with "BASS_SAMPLE_LOOP" flag if you want to repeat
 	bgm = BASS_StreamCreateFile(false, songToLoad.c_str(), 0, 0, 0);
 	//BASS_ChannelSetPosition(bgm, BASS_ChannelSeconds2Bytes(bgm,20), BASS_POS_BYTE);
@@ -67,8 +67,8 @@ void MainGame::uninit()
 		beatMap = BeatMap();
 		BASS_StreamFree(bgm);
 		BASS_StreamFree(sfx);
-		SDL_DestroyTexture(bg);
-		SDL_DestroyTexture(note);
+		SDL_DestroyTexture(bg.texture);
+		SDL_DestroyTexture(note.texture);
 		for (int i = 0; i < enums::NO_HIT; i++) { SDL_DestroyTexture(noteHitTypes[i].texture); }
 		initted = false;
 	}
@@ -95,8 +95,8 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 	}
 
 	//Blit Background image
-	SDL_SetTextureAlphaMod(bg, processBgAlpha());
-	SDL_RenderCopyEx(Renderer, bg, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
+	SDL_SetTextureAlphaMod(bg.texture, processBgAlpha());
+	SDL_RenderCopyEx(Renderer, bg.texture, NULL, NULL, 0, NULL, SDL_FLIP_NONE);
 	
 	//Compute beatMap variables
 	beatMap.computeVariables(currentSongPosition, &hits);
