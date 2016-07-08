@@ -18,11 +18,12 @@ private:
 	std::vector<std::vector<int>> beatMapsWithKey;
 	ListOfPanels listOfPanels;
 	std::vector<MusicSelectionClickableButton> clickableButtons;
+	std::vector<enums::beatMapDifficulty> beatMapDifficulties;
 	enums::beatMapDifficulty currentSelectedDifficulty;
 	MusicSelectionPanel generateMusicSelectionPanel(int index);
 	std::vector<BeatMapKeyAndDifficulty> checkForBeatMaps(boost::filesystem::path path, int index);
 	void getBeatMaps(), processEvent(SDL_Event e), computeSelectionBarX(double currentTick), calculateMaxNumberOfPanels(), generateListOfPanels(), generateClickableButtons(),assertThatPanelCornersDontCrossLimit(), checkThatMusicIsPlayingWithinRange(), checkIfClickableButtonIsPressed(), processButtonClick(MusicSelectionClickableButton *button), renderClickableButtons(),computePanelY(), backupPanelY();
-	void getSongInfo(std::string path, MusicFileSystem *fileSystem), selectPanel(), freeAndChangebgm(), freeAndChangebg(), freeAndChangeAlbumArt(), checkThatDifficultyIsAvailableInNewSong(), renderAlbumArt();
+	void getSongInfo(std::string path, MusicFileSystem *fileSystem), selectPanel(), freeAndChangebgm(), freeAndChangebg(), freeAndChangeAlbumArt(), checkThatDifficultyIsAvailableInNewSong(), renderAlbumArt(), renderPanels();
 	bool initted = false, selectionIsMinimized, mouseIsBeingDragged, mouseIsClicked, panelAreaIsClicked, proceedToMainGame;
 	int currentSelectedMusicIndex, currentNumberOfKeysSelected, mouseX, mouseY, lastClickedX, lastClickedY, selectionBarX, maxNumberOfPanels, findIndexOfElementInBeatMapsWithKey(std::vector<int> *vect, int element);
 	double selectionBarTransitionTime;

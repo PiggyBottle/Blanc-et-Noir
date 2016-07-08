@@ -11,8 +11,8 @@
 int main(int argc, char* args[]) {
 
 	InitVariables var;
-	var.screen_width = 1280;
-	var.screen_height = 720;
+	var.screen_width = 1080;
+	var.screen_height = 620;
 	var.screen_fps = 600;
 	var.startup_screen_delay = 2000;
 	//MusicSelection variables
@@ -35,15 +35,24 @@ int main(int argc, char* args[]) {
 		var.musicSelection_startGame_button_y = 0.8f;
 		var.musicSelection_startGame_button_width = 0.1f;
 		var.musicSelection_startGame_button_height = 0.1f;
-		var.musicSelection_gameKeys_button_x = 0.65f;
-		var.musicSelection_gameKeys_button_y = 0.1f;
-		var.musicSelection_gameKeys_button_height = 0.15f;
-		var.musicSelection_gameKeys_button_width = 0.2f;
+		var.musicSelection_gameKeys_button_x = 0.35f;
+		var.musicSelection_gameKeys_button_y = 0.05f;
+		var.musicSelection_gameKeys_button_height = 0.1f;
+		var.musicSelection_gameKeys_button_width = 0.15f;
 		var.musicSelection_gameKeys_button_separation = 0.03f;
 		var.musicSelection_difficulty_button_x = 0.7f;
 		var.musicSelection_difficulty_button_width = 0.2f;
 		var.musicSelection_difficulty_button_height = 0.1f;
 		var.musicSelection_difficulty_button_shadow = 0.008f;
+		RGB color;
+		color.r = 88; color.g = 235; color.b = 159;
+		var.musicSelection_color_easy = color;
+		color.r = 0, color.g = 191; color.b = 243;
+		var.musicSelection_color_normal = color;
+		color.r = 255; color.g = 255; color.b = 0;
+		var.musicSelection_color_hard = color;
+		color.r = 251; color.g = 99; color.b = 139;
+		var.musicSelection_color_extreme = color;
 	}
 	//MainGame variables
 	{

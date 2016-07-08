@@ -110,31 +110,7 @@ Instruction MusicSelection::process(SDL_Event e, Instruction nextInstruction)
 	renderAlbumArt();
 
 	//Render panels
-	for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
-	{
-		//Render highlight
-		SDL_Rect highlightRect = { 0,i->centerY - i->width,selectionBarX,2 * i->width };
-		SDL_SetRenderDrawBlendMode(Renderer,SDL_BLENDMODE_BLEND);
-		SDL_SetRenderDrawColor(Renderer, 51, 204, 255, 155);
-		SDL_RenderFillRect(Renderer, &highlightRect);
-
-		//Render text
-		float widthToHeightRatio = ((float)i->songTitleTexture.width) / ((float)i->songTitleTexture.height);
-		int textPadding = (int)(initVariables.musicSelection_panel_text_right_padding * ((float)initVariables.screen_width));
-		//Using initVariable's width instead of panel's width because panel's one might change
-		int textPanelHeight = (int)(initVariables.musicSelection_panel_width * ((float)initVariables.screen_height));
-		int textWidth = (int)(widthToHeightRatio * ((float)textPanelHeight));
-		SDL_Rect textRect = { selectionBarX - textWidth - textPadding,i->centerY - textPanelHeight,textWidth,textPanelHeight };
-		SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-		SDL_RenderCopyEx(Renderer, i->songTitleTexture.texture, NULL, &textRect, 0, 0, SDL_FLIP_NONE);
-
-		//Render panel borders
-		SDL_Rect panelRect = { 0,i->centerY-i->width-(initVariables.musicSelection_panel_thickness/2), selectionBarX, initVariables.musicSelection_panel_thickness };
-		SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-		SDL_RenderFillRect(Renderer, &panelRect);
-		panelRect.y = i->centerY + i->width - (initVariables.musicSelection_panel_thickness/2);
-		SDL_RenderFillRect(Renderer, &panelRect);
-	}
+	renderPanels();
 
 	//Render selection bar
 	SDL_Rect selectionBar = {selectionBarX-(initVariables.musicSelection_bar_thickness/2),0,initVariables.musicSelection_bar_thickness,initVariables.screen_height};
@@ -449,7 +425,7 @@ void MusicSelection::checkIfClickableButtonIsPressed()
 
 void MusicSelection::processButtonClick(MusicSelectionClickableButton *button)
 {
-	if (button->text == "START") { proceedToMainGame = true; }
+	if (button->text == "START"  && (!listOfPanels.panels.empty())) { proceedToMainGame = true; }
 	if (button->text == "4 Key" || button->text == "6 Key")
 	{
 		if (button->text == "4 Key" && currentNumberOfKeysSelected != enums::FOUR_KEYS) { currentNumberOfKeysSelected = enums::FOUR_KEYS; generateListOfPanels(); }
@@ -474,13 +450,13 @@ void MusicSelection::renderClickableButtons()
 			SDL_SetTextureAlphaMod(i->backgroundTexture.texture, 255);
 
 			//Change colors respectively
-			int r, g, b;
-			if (i->text == "EASY") { r = 88; g = 235; b = 159; }
-			else if (i->text == "NORMAL") { r = 0; g = 191; b = 243; }
-			else if (i->text == "HARD") { r = 255; g = 255; b = 0; }
-			else if (i->text == "EXTREME") { r = 251; g = 99; b = 139; }
+			RGB difficultyColor;
+			if (i->text == "EASY") { difficultyColor = initVariables.musicSelection_color_easy; }
+			else if (i->text == "NORMAL") { difficultyColor = initVariables.musicSelection_color_normal; }
+			else if (i->text == "HARD") { difficultyColor = initVariables.musicSelection_color_hard; }
+			else if (i->text == "EXTREME") { difficultyColor = initVariables.musicSelection_color_extreme; }
 			//Render background
-			SDL_SetTextureColorMod(i->backgroundTexture.texture, r, g, b);
+			SDL_SetTextureColorMod(i->backgroundTexture.texture, difficultyColor.r, difficultyColor.g, difficultyColor.b);
 			SDL_RenderCopy(Renderer, i->backgroundTexture.texture, NULL, &backgroundRect);
 			//Render text
 			SDL_Rect textRect;
@@ -549,6 +525,47 @@ void MusicSelection::renderAlbumArt()
 
 	SDL_RenderCopy(Renderer, texture.texture, NULL, &errorTextRect);
 	SDL_DestroyTexture(texture.texture);
+}
+
+void MusicSelection::renderPanels()
+{
+	for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
+	{
+		//Render highlight
+		SDL_Rect highlightRect = { 0,i->centerY - i->width,selectionBarX,2 * i->width };
+		RGB color;
+		SDL_SetRenderDrawBlendMode(Renderer,SDL_BLENDMODE_BLEND);
+		switch (currentSelectedDifficulty)
+		{
+		case enums::EASY:
+			color = initVariables.musicSelection_color_easy; break;
+		case enums::NORMAL:
+			color = initVariables.musicSelection_color_normal; break;
+		case enums::HARD:
+			color = initVariables.musicSelection_color_hard; break;
+		case enums::EXTREME:
+			color = initVariables.musicSelection_color_extreme; break;
+		}
+		SDL_SetRenderDrawColor(Renderer, color.r, color.g, color.b, 155);
+		SDL_RenderFillRect(Renderer, &highlightRect);
+
+		//Render text
+		float widthToHeightRatio = ((float)i->songTitleTexture.width) / ((float)i->songTitleTexture.height);
+		int textPadding = (int)(initVariables.musicSelection_panel_text_right_padding * ((float)initVariables.screen_width));
+		//Using initVariable's width instead of panel's width because panel's one might change
+		int textPanelHeight = (int)(initVariables.musicSelection_panel_width * ((float)initVariables.screen_height));
+		int textWidth = (int)(widthToHeightRatio * ((float)textPanelHeight));
+		SDL_Rect textRect = { selectionBarX - textWidth - textPadding,i->centerY - textPanelHeight,textWidth,textPanelHeight };
+		SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+		SDL_RenderCopyEx(Renderer, i->songTitleTexture.texture, NULL, &textRect, 0, 0, SDL_FLIP_NONE);
+
+		//Render panel borders
+		SDL_Rect panelRect = { 0,i->centerY-i->width-(initVariables.musicSelection_panel_thickness/2), selectionBarX, initVariables.musicSelection_panel_thickness };
+		SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+		SDL_RenderFillRect(Renderer, &panelRect);
+		panelRect.y = i->centerY + i->width - (initVariables.musicSelection_panel_thickness/2);
+		SDL_RenderFillRect(Renderer, &panelRect);
+	}
 }
 
 void MusicSelection::generateListOfPanels()
@@ -685,17 +702,20 @@ void MusicSelection::checkThatDifficultyIsAvailableInNewSong()
 	BeatMapKeyAndDifficulty bMKAD;
 	bMKAD.difficulty = currentSelectedDifficulty;
 	bMKAD.numberOfKeys = currentNumberOfKeysSelected;
+	beatMapDifficulties.clear();
 	
+	bool found = false;
 	enums::beatMapDifficulty easiestKnownDifficulty = enums::EXTREME;
 	for (std::vector<BeatMapKeyAndDifficulty>::iterator i = beatMaps[currentSelectedMusicIndex].difficultyAndKeys.begin(); i != beatMaps[currentSelectedMusicIndex].difficultyAndKeys.end(); ++i)
 	{
 		if (i->numberOfKeys == currentNumberOfKeysSelected)
 		{
-			if (i->difficulty == currentSelectedDifficulty) { return; }
+			if (i->difficulty == currentSelectedDifficulty) { found = true; }
 			else if (i->difficulty < easiestKnownDifficulty) { easiestKnownDifficulty = i->difficulty; }
+			beatMapDifficulties.push_back(i->difficulty);
 		}
 	}
-	currentSelectedDifficulty = easiestKnownDifficulty;
+	if (!found) { currentSelectedDifficulty = easiestKnownDifficulty; }
 }
 
 void MusicSelection::backupPanelY()

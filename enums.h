@@ -58,6 +58,12 @@ struct Instruction {
 	std::string beatMapBGtoLoad;
 };
 
+struct RGB {
+	int r;
+	int g;
+	int b;
+};
+
 struct InitVariables {
 	int screen_height;
 	int screen_width;
@@ -93,6 +99,10 @@ struct InitVariables {
 	float musicSelection_difficulty_button_width;
 	float musicSelection_difficulty_button_height;
 	float musicSelection_difficulty_button_shadow;
+	RGB musicSelection_color_easy;
+	RGB musicSelection_color_normal;
+	RGB musicSelection_color_hard;
+	RGB musicSelection_color_extreme;
 	int maingame_startup_fadein_time;
 	int mainGame_bg_alpha;
 	int mainGame_ui_transition_time;
@@ -114,12 +124,6 @@ struct InitVariables {
 	std::vector<int> keyBinds;
 	double okay_hit_buffer_time;
 	double perfect_hit_buffer_time;
-};
-
-struct RGB {
-	int r;
-	int g;
-	int b;
 };
 
 struct StartEnd {
