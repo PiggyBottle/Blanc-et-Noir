@@ -20,7 +20,8 @@ int main(int argc, char* args[]) {
 		var.musicSelection_albumArt_x = 0.36f;
 		var.musicSelection_albumArt_y = 0.25f;
 		var.musicSelection_albumArt_width_and_height = 0.3f;
-		var.musicSelection_albumArt_errorText_height = 0.3f;
+		var.musicSelection_albumArt_errorText_height = 0.34f;
+		var.musicSelection_albumArt_shadow = 0.01f;
 		var.musicSelection_bar_thickness = 4;
 		var.musicSelection_bar_maximized_x = 0.35f;
 		var.musicSelection_bar_minimized_x = 0.1f;
@@ -36,9 +37,13 @@ int main(int argc, char* args[]) {
 		var.musicSelection_startGame_button_height = 0.1f;
 		var.musicSelection_gameKeys_button_x = 0.65f;
 		var.musicSelection_gameKeys_button_y = 0.1f;
-		var.musicSelection_gameKeys_button_height = 0.1f;
-		var.musicSelection_gameKeys_button_width = 0.15f;
+		var.musicSelection_gameKeys_button_height = 0.15f;
+		var.musicSelection_gameKeys_button_width = 0.2f;
 		var.musicSelection_gameKeys_button_separation = 0.03f;
+		var.musicSelection_difficulty_button_x = 0.7f;
+		var.musicSelection_difficulty_button_width = 0.2f;
+		var.musicSelection_difficulty_button_height = 0.1f;
+		var.musicSelection_difficulty_button_shadow = 0.008f;
 	}
 	//MainGame variables
 	{

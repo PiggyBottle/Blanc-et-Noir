@@ -64,10 +64,13 @@ struct InitVariables {
 	int screen_fps;
 	int startup_screen_delay;
 	float musicSelection_albumArt_x;
+	//Also used as anchor for difficulty buttons
 	float musicSelection_albumArt_y;
+	//With respect to screen width
 	float musicSelection_albumArt_width_and_height;
 	//With respect to album art height;
 	float musicSelection_albumArt_errorText_height;
+	float musicSelection_albumArt_shadow;
 	float musicSelection_bar_minimized_x;
 	float musicSelection_bar_maximized_x;
 	double musicSelection_bar_transition_time;
@@ -86,6 +89,10 @@ struct InitVariables {
 	float musicSelection_gameKeys_button_height;
 	float musicSelection_gameKeys_button_width;
 	float musicSelection_gameKeys_button_separation;
+	float musicSelection_difficulty_button_x;
+	float musicSelection_difficulty_button_width;
+	float musicSelection_difficulty_button_height;
+	float musicSelection_difficulty_button_shadow;
 	int maingame_startup_fadein_time;
 	int mainGame_bg_alpha;
 	int mainGame_ui_transition_time;

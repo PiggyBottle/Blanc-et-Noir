@@ -389,7 +389,37 @@ void MusicSelection::generateClickableButtons()
 		clickableButtons.push_back(button);
 	}
 
+	//Generate difficulty buttons
+	{
+		int availableSpace = (int)(initVariables.musicSelection_albumArt_width_and_height * ((float)initVariables.screen_width));
+		int totalSeparationSpace = availableSpace - ((int)(((float)initVariables.screen_height) * ((float)enums::TOTAL_DIFFICULTIES) * initVariables.musicSelection_difficulty_button_height));
+		int separation = totalSeparationSpace / (enums::TOTAL_DIFFICULTIES - 1);
 
+		button.y = (int)(initVariables.musicSelection_albumArt_y * ((float)initVariables.screen_height));
+		button.x = (int)(((float)initVariables.screen_width) * initVariables.musicSelection_difficulty_button_x);
+		button.width = (int)(((float)initVariables.screen_width) * initVariables.musicSelection_difficulty_button_width);
+		button.height = (int)(((float)initVariables.screen_height) * initVariables.musicSelection_difficulty_button_height);
+		button.backgroundTexture = loadTexture("round rectangle.png", Renderer);
+		button.text = "EASY";
+		SDL_Color color = { 0,0,0 };
+		button.fontTexture = loadFont(Renderer, initVariables.musicSelection_font, 48, button.text, color);
+		clickableButtons.push_back(button);
+
+		button.y += (separation + button.height);
+		button.text = "NORMAL";
+		button.fontTexture = loadFont(Renderer, initVariables.musicSelection_font, 48, button.text, color);
+		clickableButtons.push_back(button);
+
+		button.y += (separation + button.height);
+		button.text = "HARD";
+		button.fontTexture = loadFont(Renderer, initVariables.musicSelection_font, 48, button.text, color);
+		clickableButtons.push_back(button);
+
+		button.y += (separation + button.height);
+		button.text = "EXTREME";
+		button.fontTexture = loadFont(Renderer, initVariables.musicSelection_font, 48, button.text, color);
+		clickableButtons.push_back(button);
+	}
 
 
 	//Generate start game button
@@ -431,8 +461,37 @@ void MusicSelection::renderClickableButtons()
 {
 	for (std::vector<MusicSelectionClickableButton>::iterator i = clickableButtons.begin(); i != clickableButtons.end(); ++i)
 	{
-		if (false)
+		if (i->text == "EASY" || i->text == "NORMAL" || i->text == "HARD" || i->text == "EXTREME")
 		{
+			SDL_Rect backgroundRect = { i->x, i->y, i->width, i->height };
+			SDL_Rect shadowRect = backgroundRect;
+			//Render shadow
+			SDL_SetTextureColorMod(i->backgroundTexture.texture, 0, 0, 0);
+			SDL_SetTextureAlphaMod(i->backgroundTexture.texture, 120);
+			shadowRect.x = backgroundRect.x + (int)(initVariables.musicSelection_difficulty_button_shadow * ((float)initVariables.screen_width));
+			shadowRect.y = backgroundRect.y + (int)(initVariables.musicSelection_difficulty_button_shadow * ((float)initVariables.screen_width));
+			SDL_RenderCopy(Renderer, i->backgroundTexture.texture, NULL, &shadowRect);
+			SDL_SetTextureAlphaMod(i->backgroundTexture.texture, 255);
+
+			//Change colors respectively
+			int r, g, b;
+			if (i->text == "EASY") { r = 88; g = 235; b = 159; }
+			else if (i->text == "NORMAL") { r = 0; g = 191; b = 243; }
+			else if (i->text == "HARD") { r = 255; g = 255; b = 0; }
+			else if (i->text == "EXTREME") { r = 251; g = 99; b = 139; }
+			//Render background
+			SDL_SetTextureColorMod(i->backgroundTexture.texture, r, g, b);
+			SDL_RenderCopy(Renderer, i->backgroundTexture.texture, NULL, &backgroundRect);
+			//Render text
+			SDL_Rect textRect;
+			int centerOfButtonX = i->x + ((i->width) / 2);
+			int centerOfButtonY = i->y + ((i->height) / 2);
+			float widthToHeightRatio = ((float)i->fontTexture.width) / ((float)i->fontTexture.height);
+			textRect.h = i->height;
+			textRect.w = (int)(widthToHeightRatio * ((float)textRect.h));
+			textRect.x = centerOfButtonX - (textRect.w / 2);
+			textRect.y = centerOfButtonY - (textRect.h / 2);
+			SDL_RenderCopy(Renderer, i->fontTexture.texture, NULL, &textRect);
 		}
 		else
 		{
@@ -457,8 +516,8 @@ void MusicSelection::renderAlbumArt()
 	int albumArtWidthAndHeight = (int)(initVariables.musicSelection_albumArt_width_and_height * ((float)initVariables.screen_width));
 	SDL_Rect albumArtRect = { (int)(initVariables.musicSelection_albumArt_x * ((float)initVariables.screen_width)),(int)(initVariables.musicSelection_albumArt_y * ((float)initVariables.screen_height)),albumArtWidthAndHeight,albumArtWidthAndHeight };
 	SDL_Rect albumArtShadowRect = albumArtRect;
-	albumArtShadowRect.x = albumArtRect.x + (int)(0.01f * ((float)initVariables.screen_width));
-	albumArtShadowRect.y = albumArtRect.y + (int)(0.01f * ((float)initVariables.screen_width));
+	albumArtShadowRect.x = albumArtRect.x + (int)(initVariables.musicSelection_albumArt_shadow * ((float)initVariables.screen_width));
+	albumArtShadowRect.y = albumArtRect.y + (int)(initVariables.musicSelection_albumArt_shadow * ((float)initVariables.screen_width));
 	//Render Shadow
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 125);
 	SDL_RenderFillRect(Renderer, &albumArtShadowRect);
