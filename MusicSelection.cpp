@@ -34,9 +34,10 @@ void MusicSelection::init()
 	//Generate buttons
 	generateClickableButtons();
 
-
 	//Load background
 	freeAndChangebg();
+	//Load album art
+	freeAndChangeAlbumArt();
 	//Load music
 	freeAndChangebgm();
 	checkThatMusicIsPlayingWithinRange();
@@ -58,6 +59,7 @@ void MusicSelection::uninit()
 	if (initted)
 	{
 		SDL_DestroyTexture(bg.texture);
+		SDL_DestroyTexture(albumArt.texture);
 		for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
 		{
 			SDL_DestroyTexture(i->songTitleTexture.texture);
@@ -103,6 +105,9 @@ Instruction MusicSelection::process(SDL_Event e, Instruction nextInstruction)
 
 	//Render clickable buttons
 	renderClickableButtons();
+
+	//Render Album Art
+	renderAlbumArt();
 
 	//Render panels
 	for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
@@ -182,7 +187,7 @@ void MusicSelection::computeSelectionBarX(double currentTick)
 
 void MusicSelection::computePanelY()
 {
-	if (!(panelAreaIsClicked && mouseIsClicked && mouseIsBeingDragged)) { return; }
+	if (!(panelAreaIsClicked && mouseIsClicked && mouseIsBeingDragged && (!listOfPanels.panels.empty()))) { return; }
 	
 	int mouseDelta = mouseY - lastClickedY;
 	for (std::list<MusicSelectionPanel>::iterator i = listOfPanels.panels.begin(); i != listOfPanels.panels.end(); ++i)
@@ -315,6 +320,9 @@ void MusicSelection::getSongInfo(std::string path, MusicFileSystem *fileSystem)
 {
 	std::ifstream file(path);
 	std::string line;
+	//Default string to use when there is no album art specified
+	fileSystem->albumArtFileName = "No Image";
+
 	while (std::getline(file, line))
 	{
 		if (line == "#songname")
@@ -343,6 +351,12 @@ void MusicSelection::getSongInfo(std::string path, MusicFileSystem *fileSystem)
 			std::getline(file, line2);
 			fileSystem->musicEndPosition = std::stod(line2);
 		}
+		else if (line == "#albumartfilename")
+		{
+			std::string line2;
+			std::getline(file, line2);
+			fileSystem->albumArtFileName = line2;
+		}
 	}
 	return;
 }
@@ -355,20 +369,41 @@ void MusicSelection::calculateMaxNumberOfPanels()
 void MusicSelection::generateClickableButtons()
 {
 	MusicSelectionClickableButton button;
-	
+	//Note: Don't destroy generated textures that are created here! They are removed during uninit
+
 	//Generate number of keys buttons
-	;
+	{
+		button.x = (int)(initVariables.musicSelection_gameKeys_button_x * ((float)initVariables.screen_width));
+		button.y = (int)(initVariables.musicSelection_gameKeys_button_y * ((float)initVariables.screen_height));
+		button.width = (int)(initVariables.musicSelection_gameKeys_button_width * ((float)initVariables.screen_width));
+		button.height = (int)(initVariables.musicSelection_gameKeys_button_height * ((float)initVariables.screen_height));
+		button.backgroundTexture.texture = NULL;
+		button.text = "4 Key";
+		SDL_Color color = { 255,255,255 };
+		button.fontTexture = loadFont(Renderer, initVariables.musicSelection_font, 48, button.text, color);
+		clickableButtons.push_back(button);
+
+		button.x += button.width + ((int)(initVariables.musicSelection_gameKeys_button_separation * ((float)initVariables.screen_width)));
+		button.text = "6 Key";
+		button.fontTexture = loadFont(Renderer, initVariables.musicSelection_font, 48, button.text, color);
+		clickableButtons.push_back(button);
+	}
+
+
+
 
 	//Generate start game button
-	button.x = (int)(((float)initVariables.screen_width) * initVariables.musicSelection_startGame_button_x);
-	button.y = (int)(((float)initVariables.screen_height) * initVariables.musicSelection_startGame_button_y);
-	button.width = (int)(((float)initVariables.screen_width) * initVariables.musicSelection_startGame_button_width);
-	button.height = (int)(((float)initVariables.screen_height) * initVariables.musicSelection_startGame_button_height);
-	button.backgroundTexture.texture = NULL;
-	button.text = "START";
-	SDL_Color color = { 255,255,255 };
-	button.fontTexture = loadFont(Renderer, initVariables.musicSelection_font, 48, button.text, color);
-	clickableButtons.push_back(button);
+	{
+		button.x = (int)(((float)initVariables.screen_width) * initVariables.musicSelection_startGame_button_x);
+		button.y = (int)(((float)initVariables.screen_height) * initVariables.musicSelection_startGame_button_y);
+		button.width = (int)(((float)initVariables.screen_width) * initVariables.musicSelection_startGame_button_width);
+		button.height = (int)(((float)initVariables.screen_height) * initVariables.musicSelection_startGame_button_height);
+		button.backgroundTexture.texture = NULL;
+		button.text = "START";
+		SDL_Color color = { 255,255,255 };
+		button.fontTexture = loadFont(Renderer, initVariables.musicSelection_font, 48, button.text, color);
+		clickableButtons.push_back(button);
+	}
 }
 
 void MusicSelection::checkIfClickableButtonIsPressed()
@@ -385,25 +420,76 @@ void MusicSelection::checkIfClickableButtonIsPressed()
 void MusicSelection::processButtonClick(MusicSelectionClickableButton *button)
 {
 	if (button->text == "START") { proceedToMainGame = true; }
+	if (button->text == "4 Key" || button->text == "6 Key")
+	{
+		if (button->text == "4 Key" && currentNumberOfKeysSelected != enums::FOUR_KEYS) { currentNumberOfKeysSelected = enums::FOUR_KEYS; generateListOfPanels(); }
+		else if (button->text == "6 Key" && currentNumberOfKeysSelected != enums::SIX_KEYS) { currentNumberOfKeysSelected = enums::SIX_KEYS; generateListOfPanels(); }
+	}
 }
 
 void MusicSelection::renderClickableButtons()
 {
 	for (std::vector<MusicSelectionClickableButton>::iterator i = clickableButtons.begin(); i != clickableButtons.end(); ++i)
 	{
-		if (i->backgroundTexture.texture == NULL)
+		if (false)
 		{
-			SDL_Rect backgroundRect = { i->x, i->y, i->width, i->height };
-			SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 155);
-			SDL_RenderFillRect(Renderer, &backgroundRect);
 		}
-		if (i->fontTexture.texture != NULL)
+		else
 		{
-			SDL_Rect textRect = { i->x, i->y, i->width, i->height };
-			SDL_RenderCopy(Renderer, i->fontTexture.texture, NULL, &textRect);
+			if (i->backgroundTexture.texture == NULL)
+			{
+				SDL_Rect backgroundRect = { i->x, i->y, i->width, i->height };
+				SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 155);
+				SDL_RenderFillRect(Renderer, &backgroundRect);
+			}
+			if (i->fontTexture.texture != NULL)
+			{
+				SDL_Rect textRect = { i->x, i->y, i->width, i->height };
+				SDL_RenderCopy(Renderer, i->fontTexture.texture, NULL, &textRect);
+			}
 		}
-			
 	}
+}
+
+void MusicSelection::renderAlbumArt()
+{
+	//Basing width and height off screen_width
+	int albumArtWidthAndHeight = (int)(initVariables.musicSelection_albumArt_width_and_height * ((float)initVariables.screen_width));
+	SDL_Rect albumArtRect = { (int)(initVariables.musicSelection_albumArt_x * ((float)initVariables.screen_width)),(int)(initVariables.musicSelection_albumArt_y * ((float)initVariables.screen_height)),albumArtWidthAndHeight,albumArtWidthAndHeight };
+	SDL_Rect albumArtShadowRect = albumArtRect;
+	albumArtShadowRect.x = albumArtRect.x + (int)(0.01f * ((float)initVariables.screen_width));
+	albumArtShadowRect.y = albumArtRect.y + (int)(0.01f * ((float)initVariables.screen_width));
+	//Render Shadow
+	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 125);
+	SDL_RenderFillRect(Renderer, &albumArtShadowRect);
+
+	//Render album art
+	if (beatMaps[currentSelectedMusicIndex].albumArtFileName == "No Image" || listOfPanels.panels.empty())
+	{
+		SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+		SDL_RenderFillRect(Renderer, &albumArtRect);
+	}
+	else { SDL_RenderCopy(Renderer, albumArt.texture, NULL, &albumArtRect); return; }
+
+	//Render text (if applicable)
+	TextureWithVariables texture;
+	std::string text;
+	SDL_Color color = { 255,255,255 };
+	if (listOfPanels.panels.empty()) { text = "No songs found"; }
+	else { text = beatMaps[currentSelectedMusicIndex].albumArtFileName; }
+	texture = loadFont(Renderer, "Noto.otf", 72, text, color);
+	float widthToHeightRatio = ((float)texture.width) / ((float)texture.height);
+	SDL_Rect errorTextRect;
+	errorTextRect.h = (int)(((float)initVariables.screen_height) *(initVariables.musicSelection_albumArt_errorText_height * initVariables.musicSelection_albumArt_width_and_height));
+	errorTextRect.w = (int)(widthToHeightRatio * ((float)errorTextRect.h));
+	int albumArtHalfWidth = (int)(((float)initVariables.screen_width) * (initVariables.musicSelection_albumArt_width_and_height / 2.f));
+	int centerOfAlbumArtX = ((int)(((float)initVariables.screen_width) * initVariables.musicSelection_albumArt_x))+ albumArtHalfWidth;
+	int centerOfAlbumArtY = ((int)(((float)initVariables.screen_height) * initVariables.musicSelection_albumArt_y))+ albumArtHalfWidth;
+	errorTextRect.x = centerOfAlbumArtX - (errorTextRect.w/2);
+	errorTextRect.y = centerOfAlbumArtY - (errorTextRect.h / 2);
+
+	SDL_RenderCopy(Renderer, texture.texture, NULL, &errorTextRect);
+	SDL_DestroyTexture(texture.texture);
 }
 
 void MusicSelection::generateListOfPanels()
@@ -466,6 +552,9 @@ void MusicSelection::generateListOfPanels()
 
 void MusicSelection::assertThatPanelCornersDontCrossLimit()
 {
+	//Program crashes when you try to dereference list.begin()/list.end() when it's empty
+	if (listOfPanels.panels.empty()) { return; }
+
 	if (listOfPanels.panels.front().centerY > (initVariables.screen_height / 2))
 	{
 		int amountToDecrease = listOfPanels.panels.front().centerY - (initVariables.screen_height / 2);
@@ -569,6 +658,14 @@ void MusicSelection::freeAndChangebg()
 {
 	SDL_DestroyTexture(bg.texture);
 	bg = loadTexture(beatMaps[currentSelectedMusicIndex].beatMapRootFolder + '/' + beatMaps[currentSelectedMusicIndex].bgFileName, Renderer);
+}
+
+void MusicSelection::freeAndChangeAlbumArt()
+{
+	SDL_DestroyTexture(albumArt.texture);
+	if (listOfPanels.panels.empty()) { albumArt.texture = NULL; return; }
+	else if (beatMaps[currentSelectedMusicIndex].albumArtFileName == "No Image") { return; }
+	albumArt = loadTexture(beatMaps[currentSelectedMusicIndex].beatMapRootFolder + '/' + beatMaps[currentSelectedMusicIndex].albumArtFileName, Renderer);
 }
 
 Instruction MusicSelection::generateInstructionForMainGame()

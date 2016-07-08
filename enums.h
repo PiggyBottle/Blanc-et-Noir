@@ -63,6 +63,11 @@ struct InitVariables {
 	int screen_width;
 	int screen_fps;
 	int startup_screen_delay;
+	float musicSelection_albumArt_x;
+	float musicSelection_albumArt_y;
+	float musicSelection_albumArt_width_and_height;
+	//With respect to album art height;
+	float musicSelection_albumArt_errorText_height;
 	float musicSelection_bar_minimized_x;
 	float musicSelection_bar_maximized_x;
 	double musicSelection_bar_transition_time;
@@ -76,6 +81,11 @@ struct InitVariables {
 	float musicSelection_startGame_button_y;
 	float musicSelection_startGame_button_width;
 	float musicSelection_startGame_button_height;
+	float musicSelection_gameKeys_button_x;
+	float musicSelection_gameKeys_button_y;
+	float musicSelection_gameKeys_button_height;
+	float musicSelection_gameKeys_button_width;
+	float musicSelection_gameKeys_button_separation;
 	int maingame_startup_fadein_time;
 	int mainGame_bg_alpha;
 	int mainGame_ui_transition_time;
@@ -158,6 +168,7 @@ struct MusicFileSystem {
 	std::string songName;
 	std::string bgFileName;
 	std::string musicFileName;
+	std::string albumArtFileName;
 	double musicStartPosition;
 	double musicEndPosition;
 	std::string beatMapRootFolder;
