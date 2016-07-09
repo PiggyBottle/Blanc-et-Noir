@@ -62,7 +62,7 @@ bool Game::init()
 	SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
 	//Initialize PNG loading
-	int imgFlags = IMG_INIT_PNG;
+	int imgFlags = IMG_INIT_PNG| IMG_INIT_JPG;
 	if (!(IMG_Init(imgFlags) & imgFlags))
 	{
 		std::cout << "SDL_image could not initialize! SDL_image Error: " << IMG_GetError() << std::endl;

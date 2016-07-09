@@ -26,7 +26,7 @@ void MusicSelection::init()
 
 	//Generate panels
 	calculateMaxNumberOfPanels();
-	currentSelectedMusicIndex = 1;
+	currentSelectedMusicIndex = 0;
 	currentNumberOfKeysSelected = enums::SIX_KEYS;
 	currentSelectedDifficulty = enums::EASY;
 	generateListOfPanels();
@@ -170,6 +170,29 @@ void MusicSelection::computePanelY()
 	{
 		i->centerY = i->previousCenterY + mouseDelta;
 	}
+
+	//Generate new panels on top/bottom to fill the gaps if possible
+	while (listOfPanels.panels.front().centerY - listOfPanels.panels.front().width > 0 && listOfPanels.front > 0)
+	{
+		listOfPanels.back--;
+		listOfPanels.panels.pop_back();
+		listOfPanels.front--;
+		int centerYofFront = listOfPanels.panels.front().centerY;
+		listOfPanels.panels.push_front(generateMusicSelectionPanel(beatMapsWithKey[currentNumberOfKeysSelected][listOfPanels.front]));
+		listOfPanels.panels.front().centerY = centerYofFront - (2* listOfPanels.panels.front().width) - ((int)(initVariables.musicSelection_panel_separation * ((float)initVariables.screen_height)));
+		listOfPanels.panels.front().previousCenterY = listOfPanels.panels.front().centerY - mouseDelta;
+	}
+	while (listOfPanels.panels.back().centerY + listOfPanels.panels.back().width < initVariables.screen_height && listOfPanels.back < ((int)beatMapsWithKey[currentNumberOfKeysSelected].size()) - 1)
+	{
+		listOfPanels.back++;
+		listOfPanels.panels.pop_front();
+		int centerYofBack = listOfPanels.panels.back().centerY;
+		listOfPanels.front++;
+		listOfPanels.panels.push_back(generateMusicSelectionPanel(beatMapsWithKey[currentNumberOfKeysSelected][listOfPanels.back]));
+		listOfPanels.panels.back().centerY = centerYofBack + (2* listOfPanels.panels.back().width) + ((int)(initVariables.musicSelection_panel_separation * ((float)initVariables.screen_height)));
+		listOfPanels.panels.back().previousCenterY = listOfPanels.panels.back().centerY - mouseDelta;
+	}
+
 	assertThatPanelCornersDontCrossLimit();
 }
 
@@ -426,10 +449,23 @@ void MusicSelection::checkIfClickableButtonIsPressed()
 void MusicSelection::processButtonClick(MusicSelectionClickableButton *button)
 {
 	if (button->text == "START"  && (!listOfPanels.panels.empty())) { proceedToMainGame = true; }
-	if (button->text == "4 Key" || button->text == "6 Key")
+	else if (button->text == "4 Key" || button->text == "6 Key")
 	{
 		if (button->text == "4 Key" && currentNumberOfKeysSelected != enums::FOUR_KEYS) { currentNumberOfKeysSelected = enums::FOUR_KEYS; generateListOfPanels(); }
 		else if (button->text == "6 Key" && currentNumberOfKeysSelected != enums::SIX_KEYS) { currentNumberOfKeysSelected = enums::SIX_KEYS; generateListOfPanels(); }
+	}
+	else if (button->text == "EASY" || button->text == "NORMAL" || button->text == "HARD" || button->text == "EXTREME")
+	{
+		enums::beatMapDifficulty selectedDifficulty;
+		if (button->text == "EASY") { selectedDifficulty = enums::EASY; }
+		else if (button->text == "NORMAL") { selectedDifficulty = enums::NORMAL; }
+		else if (button->text == "HARD") { selectedDifficulty = enums::HARD; }
+		else if (button->text == "EXTREME") { selectedDifficulty = enums::EXTREME; }
+		
+		if (selectedDifficulty != currentSelectedDifficulty && (std::find(beatMapDifficulties.begin(), beatMapDifficulties.end(), selectedDifficulty) != beatMapDifficulties.end()))
+		{
+			currentSelectedDifficulty = selectedDifficulty;
+		}
 	}
 }
 
@@ -602,12 +638,12 @@ void MusicSelection::generateListOfPanels()
 	listOfPanels.front = indexOfMusicRelativeToBeatMapsWithKey;
 
 	//Generate panels below selected index. If not enough, generate panels above
-	while ((listOfPanels.back+1) < ((int)beatMapsWithKey[currentNumberOfKeysSelected].size()) && ((int)listOfPanels.panels.size()) < maxNumberOfPanels)
+	while ((listOfPanels.back+1) < ((int)beatMapsWithKey[currentNumberOfKeysSelected].size()) && ((int)listOfPanels.panels.size()) <= maxNumberOfPanels)
 	{
 		++listOfPanels.back;
 		listOfPanels.panels.push_back(generateMusicSelectionPanel(beatMapsWithKey[currentNumberOfKeysSelected][listOfPanels.back]));
 	}
-	while (listOfPanels.front != 0 && ((int)listOfPanels.panels.size()) < maxNumberOfPanels)
+	while (listOfPanels.front != 0 && ((int)listOfPanels.panels.size()) <= maxNumberOfPanels)
 	{
 		--listOfPanels.front;
 		listOfPanels.panels.push_front(generateMusicSelectionPanel(beatMapsWithKey[currentNumberOfKeysSelected][listOfPanels.front]));
@@ -680,6 +716,7 @@ void MusicSelection::selectPanel()
 			currentSelectedMusicIndex = i->musicIndex;
 			freeAndChangebgm();
 			freeAndChangebg();
+			freeAndChangeAlbumArt();
 			checkThatDifficultyIsAvailableInNewSong();
 
 			break;
