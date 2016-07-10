@@ -7,11 +7,12 @@
 class BeatPath
 {
 public:
-	BeatPath(SDL_Renderer *r,SDL_Texture *note, float center, float width, RGB color, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes);
+	BeatPath(SDL_Renderer *r, SDL_Texture *note, float center, float width, RGB color, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION,std::vector<ColorMotion> COLORMOTION, std::vector<BeatNote> beat_notes);
 	BeatPath();
 	~BeatPath();
 	void renderPath(double songPosition, int timeBarY, double beatnote_buffer_time);
 	bool isOn = false;
+	RGB currentPathColor;
 	std::vector<int> getCurrentPathWidthCoordinates();
 	double getNextBeatTime();
 	enums::noteHit registerKey(int key, double songPosition), deregisterKey(int key, double songPosition), computeVariables(double songPosition);
@@ -29,10 +30,12 @@ private:
 	int currentPathWidth,currentCenterOfPath;
 	void computeCenterOfPath(double currentPosition);
 	void computePathWidth(double currentPosition);
+	void computePathColor(double currentPosition);
 	float processPathMotionX(PathMotion pathMotion, double currentPosition, float *endpoint);
-	RGB pathColor = { 51, 204, 255 };
+	RGB pathColor, processColorMotion(ColorMotion colorMotion, double currentPosition);
 	bool pathIsOn(double songPosition);
 	std::vector<PathMotion> pathMotions,pathWidthMotions;
+	std::vector<ColorMotion> colorMotions;
 	Uint8 pathHighlightAlpha;
 	std::vector<BeatNote> beatNotes;
 	std::vector<int> registeredKeys;

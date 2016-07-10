@@ -131,6 +131,14 @@ struct StartEnd {
 	std::vector<double> end;
 };
 
+struct ColorMotion {
+	enums::motions motion;
+	double start_position;
+	double end_position;
+	RGB startColor;
+	RGB endColor;
+};
+
 struct PathMotion {
 	enums::motions motion;
 	double start_position;

@@ -48,6 +48,7 @@ std::vector<BeatPath> BeatMap::getBeatPath()
 		StartEnd startEnd;
 		std::vector<PathMotion> pathMotion,widthMotion;
 		std::vector<BeatNote> beatNotes;
+		std::vector<ColorMotion> colorMotion;
 
 		std::ifstream file(*i);
 		std::string line;
@@ -89,13 +90,18 @@ std::vector<BeatPath> BeatMap::getBeatPath()
 				std::string line2; std::getline(file, line2);
 				widthMotion = parseStringVectorToPathMotionVector(parseStringToVectorOfTrimmedStrings(line2));
 			}
+			else if (line == "#colormotion")
+			{
+				std::string line2; std::getline(file, line2);
+				colorMotion = parseStringVectorToColorMotionVector(parseStringToVectorOfTrimmedStrings(line2));
+			}
 			else if (line == "#beatnote")
 			{
 				std::string line2; std::getline(file, line2);
 				beatNotes = parseStringVectorToBeatNoteVector(parseStringToVectorOfTrimmedStrings(line2));
 			}
 		}
-		beatPath.push_back(BeatPath(Renderer, noteTexture, startPosition, startWidth, startColor, initVariables, startEnd, pathMotion, widthMotion, beatNotes));
+		beatPath.push_back(BeatPath(Renderer, noteTexture, startPosition, startWidth, startColor, initVariables, startEnd, pathMotion, widthMotion, colorMotion, beatNotes));
 	}
 	return beatPath;
 }
@@ -172,6 +178,31 @@ std::vector<PathMotion> BeatMap::parseStringVectorToPathMotionVector(std::vector
 	return pathMotion;
 }
 
+std::vector<ColorMotion> BeatMap::parseStringVectorToColorMotionVector(std::vector<std::string> strings)
+{
+	std::vector<ColorMotion> colorMotions;
+	std::vector<std::string> lines;
+	for (std::vector<std::string>::iterator i = strings.begin(); i != strings.end(); ++i)
+	{
+		boost::split(lines, *i, boost::is_any_of("|"));
+		ColorMotion cM;
+		RGB color;
+		cM.motion = (enums::motions)std::stoi(lines[0]);
+		cM.start_position = std::stod(lines[1]);
+		cM.end_position = std::stod(lines[2]);
+		color.r = std::stoi(lines[3]);
+		color.g = std::stoi(lines[4]);
+		color.b = std::stoi(lines[5]);
+		cM.startColor = color;
+		color.r = std::stoi(lines[6]);
+		color.g = std::stoi(lines[7]);
+		color.b = std::stoi(lines[8]);
+		cM.endColor = color;
+		colorMotions.push_back(cM);
+	}
+	return colorMotions;
+}
+
 std::vector<BeatNote> BeatMap::parseStringVectorToBeatNoteVector(std::vector<std::string> strings)
 {
 	std::vector<BeatNote> beatNote;
@@ -228,11 +259,26 @@ bool BeatMap::thereIsAnOverlap(int start, int end, std::vector<int> pathCoordina
 
 void BeatMap::render(Uint32 currentTick, double currentMusicPosition, int timeBarY)
 {
+	//Render paths and beatnotes
 	for (std::vector<BeatPath>::iterator i = beatPath.begin(); i != beatPath.end(); ++i)
 	{
 		i->renderPath( currentMusicPosition, timeBarY, beatNoteBufferTime);
 	}
 
+	//Render panel images for clicked keys
+	for (size_t i = 0, ilen = keyStatuses.size(); i < ilen; ++i)
+	{
+		if (keyStatuses[i].already_pressed)
+		{
+			int panelLeftX = keyCoordinates[i];
+			int panelWidth = keyCoordinates[i + 1] - panelLeftX;
+			SDL_Rect panelImage = { panelLeftX, timeBarY, panelWidth, SCREEN_HEIGHT -timeBarY };
+			SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 120);
+			SDL_RenderFillRect(Renderer, &panelImage);
+		}
+	}
+
+	//Render separations
 	SDL_Rect a = { 0,timeBarY,keySeparationThickness,SCREEN_HEIGHT - timeBarY };
 	for (int i = 1; i < numberOfKeys; i++)
 	{

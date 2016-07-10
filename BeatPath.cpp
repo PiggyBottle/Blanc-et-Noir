@@ -4,11 +4,12 @@
 #include <cmath>
 
 BeatPath::BeatPath() {}
-BeatPath::BeatPath(SDL_Renderer *r, SDL_Texture *note, float center, float width, RGB color, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION, std::vector<BeatNote> beat_notes)
+BeatPath::BeatPath(SDL_Renderer *r, SDL_Texture *note, float center, float width, RGB color, InitVariables var, StartEnd STARTEND, std::vector<PathMotion> PATHMOTION, std::vector<PathMotion> WIDTHMOTION,std::vector<ColorMotion> COLORMOTION, std::vector<BeatNote> beat_notes)
 {
 	this->Renderer = r;
 	this->pathCenter = center;
 	this->pathColor = color;
+	this->currentPathColor = color;
 	this->SCREEN_WIDTH = var.screen_width;
 	this->pathWidth = width;
 	this->pathHighlightAlpha = var.path_highlight_alpha;
@@ -20,6 +21,7 @@ BeatPath::BeatPath(SDL_Renderer *r, SDL_Texture *note, float center, float width
 	startEnd = STARTEND;
 	pathMotions = PATHMOTION;
 	pathWidthMotions = WIDTHMOTION;
+	colorMotions = COLORMOTION;
 
 }
 
@@ -32,6 +34,7 @@ enums::noteHit BeatPath::computeVariables(double songPosition)
 {
 	computeCenterOfPath(songPosition);
 	computePathWidth(songPosition);
+	computePathColor(songPosition);
 	isOn = pathIsOn(songPosition);
 	return computeBeatNotes(songPosition);
 }
@@ -133,6 +136,41 @@ void BeatPath::drawBorders(int timeBarY)
 	border.x = currentCenterOfPath + currentPathWidth;
 	SDL_RenderFillRect(Renderer, &border);
 
+}
+
+void BeatPath::computePathColor(double currentPosition)
+{
+	for (std::vector<ColorMotion>::iterator i = colorMotions.begin(); i != colorMotions.end(); ++i)
+	{
+		//Including '=' to account for 'instant color-changes'
+		if (i->end_position <= currentPosition)
+		{
+			currentPathColor = i->endColor;
+		}
+		else if (i->start_position < currentPosition && currentPosition < i->end_position)
+		{
+			currentPathColor = processColorMotion(*i, currentPosition);
+			return;
+		}
+	}
+}
+
+RGB BeatPath::processColorMotion(ColorMotion colorMotion, double currentPosition)
+{
+	pathColor = colorMotion.startColor;
+	RGB color = { 255,255,255 };
+	if (colorMotion.motion == enums::LINEAR_SLIDE)
+	{
+		int start[3] = { colorMotion.startColor.r, colorMotion.startColor.g, colorMotion.startColor.b };
+		int end[3] = { colorMotion.endColor.r, colorMotion.endColor.g, colorMotion.endColor.b };
+		int *final[3] = { &color.r, &color.g, &color.b };
+		for (int i = 0; i < 3; ++i)
+		{
+			*final[i] = start[i] + ((int)(((currentPosition - colorMotion.start_position) / (colorMotion.end_position - colorMotion.start_position)) * ((double)(end[i] - start[i]))));
+		}
+		return color;
+	}
+	return color;
 }
 
 enums::noteHit BeatPath::computeBeatNotes(double songPosition)
@@ -245,7 +283,7 @@ void BeatPath::drawPathHighlight(int timeBarY)
 	SDL_Rect highlight = { 0,0,0,timeBarY };
 	highlight.x = currentCenterOfPath - currentPathWidth;
 	highlight.w = 2 * currentPathWidth;
-	SDL_SetRenderDrawColor(Renderer, pathColor.r, pathColor.g, pathColor.b, 155);
+	SDL_SetRenderDrawColor(Renderer, currentPathColor.r, currentPathColor.g, currentPathColor.b, 155);
 	SDL_RenderFillRect(Renderer, &highlight);
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
 

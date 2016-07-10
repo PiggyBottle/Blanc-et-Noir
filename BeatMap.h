@@ -35,6 +35,7 @@ private:
 	std::vector<double> parseStringToVectorOfDoubles(std::string line);
 	std::vector<std::string> parseStringToVectorOfTrimmedStrings(std::string line);
 	std::vector<PathMotion> parseStringVectorToPathMotionVector(std::vector<std::string> strings);
+	std::vector<ColorMotion> parseStringVectorToColorMotionVector(std::vector<std::string> strings);
 	std::vector<BeatNote> parseStringVectorToBeatNoteVector(std::vector<std::string> strings);
 	
 };
