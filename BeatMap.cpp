@@ -259,12 +259,6 @@ bool BeatMap::thereIsAnOverlap(int start, int end, std::vector<int> pathCoordina
 
 void BeatMap::render(Uint32 currentTick, double currentMusicPosition, int timeBarY)
 {
-	//Render paths and beatnotes
-	for (std::vector<BeatPath>::iterator i = beatPath.begin(); i != beatPath.end(); ++i)
-	{
-		i->renderPath( currentMusicPosition, timeBarY, beatNoteBufferTime);
-	}
-
 	//Render panel images for clicked keys
 	for (size_t i = 0, ilen = keyStatuses.size(); i < ilen; ++i)
 	{
@@ -273,9 +267,25 @@ void BeatMap::render(Uint32 currentTick, double currentMusicPosition, int timeBa
 			int panelLeftX = keyCoordinates[i];
 			int panelWidth = keyCoordinates[i + 1] - panelLeftX;
 			SDL_Rect panelImage = { panelLeftX, timeBarY, panelWidth, SCREEN_HEIGHT -timeBarY };
-			SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 120);
+			RGB color;
+			if (keyStatuses[i].linked_path != -1)
+			{
+				color = beatPath[keyStatuses[i].linked_path].currentPathColor;
+			}
+			else
+			{
+				color.r = 0; color.g = 0; color.b = 0;
+			}
+			SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
+			SDL_SetRenderDrawColor(Renderer, color.r, color.g, color.b, 180);
 			SDL_RenderFillRect(Renderer, &panelImage);
 		}
+	}
+
+	//Render paths and beatnotes
+	for (std::vector<BeatPath>::iterator i = beatPath.begin(); i != beatPath.end(); ++i)
+	{
+		i->renderPath( currentMusicPosition, timeBarY, beatNoteBufferTime);
 	}
 
 	//Render separations

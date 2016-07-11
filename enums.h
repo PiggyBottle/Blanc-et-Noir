@@ -17,8 +17,9 @@ namespace enums
 	enum motions {
 		LINEAR_SLIDE,
 		HALF_SINE_SLIDE,
-		FULL_SINE_SLIDE
-		//https ://www.wolframalpha.com/input/?i=plot+y+%3D+0.5(sin(x-pi%2F2)+%2B+1)
+		FULL_SINE_SLIDE,
+		//https://  www.wolframalpha.com/input/?i=plot+y+%3D+(sin(x-pi%2F2)+%2B+1)
+		REVERSE_HALF_SINE_SLIDE
 	};
 
 	enum noteType {

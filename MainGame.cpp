@@ -93,6 +93,7 @@ Instruction MainGame::process(SDL_Event e, Instruction nextInstruction)
 		uninit();
 		return nextInstruction;
 	}
+	else if (e.type == SDL_KEYDOWN) { std::cout << currentSongPosition << std::endl; }
 
 	//Blit Background image
 	SDL_SetTextureAlphaMod(bg.texture, processBgAlpha());

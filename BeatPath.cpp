@@ -352,6 +352,11 @@ float BeatPath::processPathMotionX(PathMotion pathMotion, double currentPosition
 		*endpoint = pathMotion.end_x;
 		return (float)(pathMotion.start_x + (std::sin(((currentPosition - pathMotion.start_position) / (pathMotion.end_position - pathMotion.start_position)) * 3.141) * (pathMotion.amplitude - pathMotion.start_x)));
 	}
+	else if (pathMotion.motion == enums::REVERSE_HALF_SINE_SLIDE)
+	{
+		*endpoint = pathMotion.end_x;
+		return (float)(pathMotion.start_x + ((std::sin(((currentPosition - pathMotion.start_position) / (pathMotion.end_position - pathMotion.start_position) * 1.5708) - 1.5708) + 1.0) * (pathMotion.end_x - pathMotion.start_x)));
+	}
 	return 0;
 }
 bool BeatPath::pathIsOn(double songPosition)
